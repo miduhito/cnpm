@@ -6,6 +6,8 @@ import { ProductModule } from './products/product.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { Product } from './products/product.entity';
+import { Category } from './category/category.entity';
+import { Option } from './options/option.entity';
 
 @Module({
   imports: [ProductModule,TypeOrmModule.forRoot({
@@ -15,7 +17,7 @@ import { Product } from './products/product.entity';
       username: 'root',
       password: 'root',
       database: 'cnpm',
-      entities: [Product],
+      entities: [Product,Category,Option],
       synchronize: true,
     }),],
   controllers: [AppController],

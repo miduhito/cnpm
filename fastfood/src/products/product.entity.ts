@@ -1,5 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { Entity, Column, PrimaryColumn} from 'typeorm';
+import { Entity, Column, PrimaryColumn,ManyToOne,JoinColumn,ManyToMany,JoinTable} from 'typeorm';
+import { Category } from 'src/category/category.entity';
+import { Option } from 'src/options/option.entity';
 @Entity()
 export class Product {
     @PrimaryColumn({ type: 'varchar', length: 50 })
@@ -17,9 +19,23 @@ export class Product {
     @Column({ type: 'text', nullable: true })
     img: string;
 
-    @Column({ type: 'varchar', length: 50 })
-    categoryID: string;
+    @ManyToOne(() => Category, { eager: true }) // eager: true sẽ tự join khi lấy product
+    @JoinColumn({ name: 'categoryID' }) // nối với cột categoryID
+    category: Category;
 
     @Column({ type: 'int' })
     quantity: number;
+    @ManyToMany(() => Option, (option) => option.products, { eager: true }) // eager để tự load
+    @JoinTable({
+    name: 'product_option', // tên bảng trung gian
+    joinColumn: {
+        name: 'productID',
+        referencedColumnName: 'productID',
+    },
+    inverseJoinColumn: {
+        name: 'optionID',
+        referencedColumnName: 'optionID',
+    },
+    })
+    options: Option[];
 }

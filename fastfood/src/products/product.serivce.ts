@@ -11,7 +11,13 @@ export class ProductService{
         private readonly productRepository: Repository<Product>,
     ){}
         findAll():Promise<Product[]>{
-            return this.productRepository.find();
+            return this.productRepository.find({ relations: ['options'] });
+        }
+        async findOne(id: string): Promise<Product | null> {
+            return this.productRepository.findOne({
+                where: { productID: id },
+                relations: ['options'],
+            });
         }
         getProducts(): string{
             return'GET LIST PRODUCTS';

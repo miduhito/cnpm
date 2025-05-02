@@ -14,7 +14,7 @@ CREATE TABLE product (
 
     FOREIGN KEY (categoryID) REFERENCES category(categoryID)
 );
-CREATE TABLE options (
+CREATE TABLE option (
     optionID VARCHAR(50) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     price DECIMAL(10,2) NOT NULL
@@ -25,7 +25,7 @@ CREATE TABLE product_option (
 
     PRIMARY KEY (productID, optionID),
     FOREIGN KEY (productID) REFERENCES product(productID),
-    FOREIGN KEY (optionID) REFERENCES options(optionID)
+    FOREIGN KEY (optionID) REFERENCES option(optionID)
 );
 CREATE TABLE receipt (
     ID VARCHAR(50) PRIMARY KEY,
@@ -66,7 +66,7 @@ CREATE TABLE cart_item_option (
 
     PRIMARY KEY (cartItemID, optionID),
     FOREIGN KEY (cartItemID) REFERENCES cart_item(cartItemID),
-    FOREIGN KEY (optionID) REFERENCES options(optionID)
+    FOREIGN KEY (optionID) REFERENCES option(optionID)
 );
 -- CartItem gắn với receipt
 ALTER TABLE cart_item ADD COLUMN receiptID VARCHAR(50), ADD FOREIGN KEY (receiptID) REFERENCES receipt(ID);
@@ -83,7 +83,7 @@ INSERT INTO product (productID, name, price, description, img, categoryID, quant
 ('prod1', 'Cheese Burger', 5.99, 'Burger with melted cheese', 'cheeseburger.jpg', 'cate1', 100),
 ('prod2', 'Beef Burger', 6.99, 'Juicy beef patty', 'beefburger.jpg', 'cate1', 80),
 ('prod3', 'Coca Cola', 1.50, 'Refreshing drink', 'coke.jpg', 'cate2', 200);
-INSERT INTO options (optionID, name, price) VALUES
+INSERT INTO option (optionID, name, price) VALUES
 ('opt1', 'Extra Cheese', 1.00),
 ('opt2', 'Large Size', 2.50),
 ('opt3', 'No Ice', 0.00);
