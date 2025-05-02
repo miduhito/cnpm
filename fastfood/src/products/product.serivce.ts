@@ -5,6 +5,7 @@ import { Product } from "./product.entity";
 import { Repository } from "typeorm";
 @Injectable()
 export class ProductService{
+    private productCache: Product[]=[];
     constructor(
         @InjectRepository(Product)
         private readonly productRepository: Repository<Product>,
