@@ -1,19 +1,21 @@
-/* Style cho menu item (không thay đổi) */
+/* Style cho menu item (cập nhật) */
 .menu-item {
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   background-color: white;
+  width: 100%; /* Đảm bảo item chiếm toàn bộ chiều rộng */
+  height: 250px; /* Tăng chiều cao từ 160px lên 250px */
 }
 
 .menu-item img {
   width: 100%;
-  height: 160px;
+  height: 180px; /* Tăng chiều cao ảnh từ 160px lên 180px */
   object-fit: cover;
 }
 
 .menu-item-content {
-  padding: 12px;
+  padding: 15px; /* Tăng padding từ 12px lên 15px */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -24,20 +26,20 @@
 }
 
 .menu-item-text h5 {
-  font-size: 1.125rem;
+  font-size: 1.25rem; /* Tăng font-size từ 1.125rem lên 1.25rem */
   font-weight: bold;
   margin: 0;
 }
 
 .menu-item-text p {
   color: #4a5568;
-  font-size: 0.875rem;
+  font-size: 1rem; /* Tăng font-size từ 0.875rem lên 1rem */
   margin: 0;
 }
 
 .menu-item-cart {
   color: #ef4444;
-  font-size: 1.5rem;
+  font-size: 1.75rem; /* Tăng font-size từ 1.5rem lên 1.75rem */
   cursor: pointer;
 }
 
@@ -45,13 +47,14 @@
   color: #dc2626;
 }
 
-/* Style cho giỏ hàng (không thay đổi) */
+/* Style cho giỏ hàng (không thay đổi nhiều) */
 .cart-container {
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   background-color: white;
   padding: 15px;
+  margin-top: -20px; /* Vị trí cao hơn */
 }
 
 .cart-title {
@@ -142,6 +145,81 @@
   border-radius: 5px;
   font-size: 0.875rem;
   cursor: pointer;
+  transition: background-color 0.3s; /* Thêm hiệu ứng chuyển đổi màu */
+}
+
+.dine-in.active {
+  background-color: #ef4444; /* Màu đỏ khi nhấn */
+  color: white;
+}
+
+/* Style cho Back to home (không thay đổi) */
+.back-to-home {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  background-color: #f0f0f0;
+  margin-bottom: 15px;
+}
+
+.back-to-home-icon {
+  margin-right: 10px;
+  font-size: 1.5rem;
+}
+
+.back-to-home-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* Style cho thanh chọn danh mục */
+.category-selector {
+  display: flex;
+  overflow-x: auto;
+  margin-bottom: 20px;
+  padding-bottom: 5px;
+}
+
+.category-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  padding: 10px;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.category-button img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-bottom: 5px;
+}
+
+.category-button span {
+  font-size: 0.875rem;
+}
+
+.category-button:hover {
+  background-color: #e0e0e0;
+}
+
+.category-button.active {
+  background-color: #1e3a8a;
+  color: white;
+}
+
+/* Style cho Restaurant Menu (không thay đổi) */
+.restaurant-menu-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
 }
 
 /* Style cho popup (không thay đổi) */
@@ -254,58 +332,4 @@
 .popup-add-button::before {
   content: '🛒';
   margin-right: 5px;
-}
-
-/* Style cho Back to home */
-.back-to-home {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.back-to-home-icon {
-  margin-right: 5px;
-  font-size: 1.2rem;
-}
-
-/* Style cho thanh chọn danh mục */
-.category-selector {
-  display: flex;
-  overflow-x: auto;
-  margin-bottom: 20px;
-  padding-bottom: 5px;
-}
-
-.category-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background-color: #f0f0f0;
-  border-radius: 10px;
-  padding: 10px;
-  margin-right: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.category-button img {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  margin-bottom: 5px;
-}
-
-.category-button span {
-  font-size: 0.875rem;
-}
-
-.category-button:hover {
-  background-color: #e0e0e0;
-}
-
-.category-button.active {
-  background-color: #1e3a8a;
-  color: white;
 }
