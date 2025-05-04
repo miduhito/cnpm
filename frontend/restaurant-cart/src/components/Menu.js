@@ -5,18 +5,26 @@ import AddToCartPopup from './AddToCartPopup';
 function Menu({ items, addToCart, category }) {
   const [selectedItem, setSelectedItem] = useState(null);
 
+  // Hàm xử lý khi nhấn vào món ăn
   const handleItemClick = (item) => {
     setSelectedItem(item);
   };
 
+  // Hàm đóng popup
   const handleClosePopup = () => {
     setSelectedItem(null);
   };
 
+  // Hàm thêm món vào giỏ hàng
   const handleAddToCart = (item, quantity, sideDish) => {
     addToCart(item, quantity, sideDish);
-    setSelectedItem(null);
+    setSelectedItem(null); // Đóng popup khi thêm vào giỏ
   };
+
+  // Kiểm tra nếu `items` không phải là mảng hoặc là mảng rỗng
+  if (!Array.isArray(items) || items.length === 0) {
+    return <p className="text-center">No items available in this category</p>;
+  }
 
   return (
     <div className="container mx-auto p-4">
@@ -28,7 +36,7 @@ function Menu({ items, addToCart, category }) {
               item={item}
               index={idx + 1}
               onItemClick={handleItemClick}
-              onAddToCart={addToCart}
+              onAddToCart={handleAddToCart}
             />
           </div>
         ))}

@@ -3,7 +3,6 @@ import React from 'react';
 function CartItem({ item, index, updateQuantity }) {
   const tax = item.price * 0.1;
   const totalPrice = item.price + tax;
-
   return (
     <div className="cart-item">
       <span>
@@ -14,7 +13,7 @@ function CartItem({ item, index, updateQuantity }) {
         <span>{item.quantity}</span>
         <button onClick={() => updateQuantity(index, item.quantity + 1)}>+</button>
       </div>
-      <span className="cart-item-price">Kr {totalPrice.toFixed(2)}</span>
+      <span className="cart-item-price">Kr {Number(totalPrice).toFixed(2)}</span>
       <div style={{ fontSize: '0.75rem', color: '#666' }}>
         (incl. tax 10% = Kr {tax.toFixed(2)})
       </div>
@@ -22,4 +21,4 @@ function CartItem({ item, index, updateQuantity }) {
   );
 }
 
-export default CartItem;
+export default CartItem ;

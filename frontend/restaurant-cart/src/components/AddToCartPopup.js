@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { Modal } from 'react-bootstrap';
-
 function AddToCartPopup({ item, onClose, onAddToCart }) {
   const [quantity, setQuantity] = useState(1);
-  const [sideDish, setSideDish] = useState('Vegetables');
-
+  const [sideDishes, setSideDishes] = useState([]);
+  const calculateOptionsPrice = () => {
+    return sideDishes.reduce((sum, dishName) => {
+      const found = item.options?.find(opt => opt.name === dishName);
+      return sum + (found ? parseFloat(found.price) : 0);
+    }, 0);
+  };
+  
   const handleAdd = () => {
-    onAddToCart(item, quantity, sideDish);
+    onAddToCart(item, quantity, sideDishes);
   };
 
   return (
@@ -16,7 +21,7 @@ function AddToCartPopup({ item, onClose, onAddToCart }) {
       </Modal.Header>
       <Modal.Body className="popup-body">
         <div className="popup-header">
-          <img src={item.image} alt={item.name} style={{ width: '100px', height: '100px', marginRight: '15px' }} />
+        <img src={`/images/${item.img}`} alt={item.name}style={{ width: '100px', height: '100px', marginRight: '15px' }} />
           <div>
             <div className="popup-sku">SKU</div>
             <div>401</div>
@@ -53,21 +58,42 @@ function AddToCartPopup({ item, onClose, onAddToCart }) {
             <span className="popup-detail-label">FOOD decoration :</span>
             <span>04</span>
           </div>
+          <div>
+            <span className="popup-detail-label">Description :</span>
+            <span>{item.description}</span>
+          </div>
         </div>
         <div className="popup-side-dishes">
-          <div className="popup-side-dishes-label">SIDE dishes (*)</div>
-          <div style={{ fontSize: '0.75rem', color: '#666' }}>Please select one of the properties below</div>
-          <label>
-            <input
-              type="checkbox"
-              checked={sideDish === 'Vegetables'}
-              onChange={() => setSideDish(sideDish === 'Vegetables' ? '' : 'Vegetables')}
-            />
-            <span style={{ marginLeft: '5px' }}>Vegetables</span>
-          </label>
-        </div>
+  <div className="popup-side-dishes-label">SIDE dishes (*)</div>
+  <div style={{ fontSize: '0.75rem', color: '#666' }}>
+    Please select one of the properties below
+  </div>
+
+  {item.options && item.options.length > 0 ? (
+    item.options.map((option) => (
+      <label key={option.optionID} style={{ display: 'block', marginTop: '5px' }}>
+        <input
+          type="checkbox"
+          checked={sideDishes.includes(option.name)}
+          onChange={() =>{
+            if (sideDishes.includes(option.name)) {
+              setSideDishes(sideDishes.filter(name => name !== option.name));
+            } else {
+              setSideDishes([...sideDishes, option.name]);
+            }
+          }}
+        />
+        <span style={{ marginLeft: '5px' }}>
+          {option.name} (+Kr {option.price})
+        </span>
+      </label>
+    ))
+  ) : (
+    <div style={{ fontStyle: 'italic', color: '#888' }}>No options available</div>
+  )}
+</div>
         <button className="popup-add-button" onClick={handleAdd}>
-          Kr {item.price * quantity}.00
+          Kr {item.price * quantity + calculateOptionsPrice()}.00
         </button>
       </Modal.Body>
     </Modal>

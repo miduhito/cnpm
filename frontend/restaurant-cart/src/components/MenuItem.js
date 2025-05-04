@@ -24,7 +24,7 @@ function MenuItem({ item, index, onItemClick, onAddToCart }) {
 
   return (
     <div className="menu-item" onClick={handleItemClick} style={{ cursor: 'pointer' }}>
-      <img src={item.image} alt={item.name} />
+      <img src={`/images/${item.img}`} alt={item.name} className="img-fluid" />
       <div className="menu-item-content">
         <div className="menu-item-text">
           <h5>
@@ -35,6 +35,7 @@ function MenuItem({ item, index, onItemClick, onAddToCart }) {
         <FaShoppingCart
           onClick={handleAddToCart}
           className="menu-item-cart"
+          style={{ fontSize: '10px', padding: '8px' }}
         />
       </div>
     </div>

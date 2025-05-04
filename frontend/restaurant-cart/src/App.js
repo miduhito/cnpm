@@ -1,49 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Menu from './components/Menu';
 import Cart from './components/Cart';
 import './App.css';
+import axios from 'axios';
 import { FaHome } from 'react-icons/fa';
 
 function App() {
   const [cart, setCart] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('Sea Food');
+  const [products,setProducts]=useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('Burger');
+  useEffect(() => {
+    axios.get('http://localhost:3001/products')
+      .then(response => {
+        setProducts(response.data);
+      })
+      .catch(error => {
+        console.error('Lỗi khi tải sản phẩm:', error);
+      });
+  }, []);
+  useEffect(() => {
+    // Lấy dữ liệu sản phẩm từ localStorage
+    const storedProducts = JSON.parse(localStorage.getItem('products')) || [];
+    setProducts(storedProducts);
+  }, []);
 
   const categories = [
-    { name: 'Cupcake', image: '/images/hamburger.jpg' },
-    { name: 'Sea Food', image: '/images/hamburger.jpg' },
-    { name: 'Juice', image: '/images/hamburger.jpg' },
-    { name: 'Coca', image: '/images/hamburger.jpg' },
-    { name: 'Orange Juice', image: '/images/hamburger.jpg' },
+    { name: 'Burger', image: './images/hamburger.jpg' },
+    { name: 'Drink', image: '/images/coca.jpg' },
+    { name: 'Cupcake',image: '/images/cupcake.jpg'},
+    // Thêm các danh mục khác nếu cần
   ];
 
-  const menuItems = {
-    'Cupcake': [
-      { id: 1, name: 'Chocolate Cupcake', price: 50, image: '/images/hamburger.jpg' },
-      { id: 2, name: 'Vanilla Cupcake', price: 50, image: '/images/hamburger.jpg' },
-    ],
-    'Sea Food': [
-      { id: 1, name: 'Hamburger', price: 123, image: '/images/hamburger.jpg' },
-      { id: 2, name: 'Grilled Squid Satay', price: 123, image: '/images/hamburger.jpg' },
-      { id: 3, name: 'Grilled Squid Satay', price: 123, image: '/images/hamburger.jpg' },
-      { id: 4, name: 'Grilled Squid Satay', price: 123, image: '/images/hamburger.jpg' },
-      { id: 5, name: 'Grilled Squid Satay', price: 123, image: '/images/hamburger.jpg' },
-      { id: 6, name: 'Grilled Squid Satay', price: 123, image: '/images/hamburger.jpg' },
-    ],
-    'Juice': [
-      { id: 1, name: 'Apple Juice', price: 30, image: '/images/hamburger.jpg' },
-      { id: 2, name: 'Mango Juice', price: 30, image: '/images/hamburger.jpg' },
-    ],
-    'Coca': [
-      { id: 1, name: 'Coca Cola', price: 20, image: '/images/hamburger.jpg' },
-    ],
-    'Orange Juice': [
-      { id: 1, name: 'Fresh Orange Juice', price: 35, image: '/images/hamburger.jpg' },
-    ],
-  };
+  const menuItems = products.filter(product => product.category.name === selectedCategory);
 
-  const addToCart = (item, quantity, sideDish) => {
-    setCart([...cart, { ...item, quantity, sideDish }]);
+  const addToCart = (item, quantity, sideDishes) => {
+    setCart([...cart, { ...item, quantity, sideDishes }]);
   };
 
   return (
@@ -67,7 +59,7 @@ function App() {
       </div>
       <div className="row">
         <div className="col-md-8">
-          <Menu items={menuItems[selectedCategory]} addToCart={addToCart} category={selectedCategory} />
+          <Menu items={menuItems} addToCart={addToCart} category={selectedCategory} />
         </div>
         <div className="col-md-4">
           <Cart cartItems={cart} setCart={setCart} />

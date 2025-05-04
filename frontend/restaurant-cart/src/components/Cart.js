@@ -12,8 +12,15 @@ function Cart({ cartItems, setCart }) {
     }
     setCart(updatedCart);
   };
-
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = cartItems.reduce((sum, item) => {
+    const optionsPrice = item.sideDishes?.reduce((optSum, dishName) => {
+      const found = item.options?.find(opt => opt.name === dishName);
+      return optSum + (found ? parseFloat(found.price) : 0);
+    }, 0) || 0;
+  
+    const itemTotal = (parseFloat(item.price) + optionsPrice) * item.quantity;
+    return sum + itemTotal;
+  }, 0);
   const tax = total * 0.1;
   const grandTotal = total + tax;
 
