@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import CartItem from './CartItem';
 
 function Cart({ cartItems, setCart }) {
+  const [isDineInActive, setIsDineInActive] = useState(false);
+
   const updateQuantity = (index, newQuantity) => {
     const updatedCart = [...cartItems];
     updatedCart[index].quantity = Math.max(0, newQuantity);
@@ -19,7 +21,12 @@ function Cart({ cartItems, setCart }) {
     <div className="cart-container">
       <div className="cart-title">
         <span>Your Cart ({cartItems.length})</span>
-        <button className="dine-in">DINE IN</button>
+        <button
+          className={`dine-in ${isDineInActive ? 'active' : ''}`}
+          onClick={() => setIsDineInActive(!isDineInActive)}
+        >
+          DINE IN
+        </button>
       </div>
       {cartItems.length === 0 ? (
         <p>Cart is empty</p>

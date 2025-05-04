@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Menu from './components/Menu';
 import Cart from './components/Cart';
 import './App.css';
+import { FaHome } from 'react-icons/fa';
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -47,11 +48,11 @@ function App() {
 
   return (
     <div className="container mt-4">
-      <div className="back-to-home">
-        <span className="back-to-home-icon">🏠</span>
-        <span>Back to home</span>
+      <div className="back-to-home" style={{ width: '100%' }}>
+        <FaHome className="back-to-home-icon" />
+        <span className="back-to-home-text">Back to home</span>
       </div>
-      <h1>Restaurant Menu</h1>
+      <h1 className="restaurant-menu-title">Restaurant Menu</h1>
       <div className="category-selector">
         {categories.map((category) => (
           <button
