@@ -9,7 +9,7 @@ import { FaHome } from 'react-icons/fa';
 function App() {
   const [cart, setCart] = useState([]);
   const [products,setProducts]=useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('Burger');
+  const [selectedCategory, setSelectedCategory] = useState('');
   useEffect(() => {
     axios.get('http://localhost:3001/products')
       .then(response => {
@@ -32,7 +32,9 @@ function App() {
     // Thêm các danh mục khác nếu cần
   ];
 
-  const menuItems = products.filter(product => product.category.name === selectedCategory);
+  const menuItems = selectedCategory === '' 
+    ? products 
+    : products.filter(product => product.category.name === selectedCategory);
 
   const addToCart = (item, quantity, sideDishes) => {
     setCart([...cart, { ...item, quantity, sideDishes }]);
@@ -44,8 +46,15 @@ function App() {
         <FaHome className="back-to-home-icon" />
         <span className="back-to-home-text">Back to home</span>
       </div>
-      <h1 className="restaurant-menu-title">Restaurant Menu</h1>
+      {/* <h1 className="restaurant-menu-title">Restaurant Menu</h1> */}
       <div className="category-selector">
+        {/* Nút "All" để chọn tất cả sản phẩm */}
+        <button
+          className={`category-button ${selectedCategory === '' ? 'active' : ''}`}
+          onClick={() => setSelectedCategory('')}
+        >
+          <span>ㅤAllㅤ</span>
+        </button>
         {categories.map((category) => (
           <button
             key={category.name}

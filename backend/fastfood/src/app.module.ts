@@ -8,9 +8,10 @@ import { DataSource } from 'typeorm';
 import { Product } from './products/product.entity';
 import { Category } from './category/category.entity';
 import { Option } from './options/option.entity';
+import { MomoModule } from './momo/momo.module';
 
 @Module({
-  imports: [ProductModule,TypeOrmModule.forRoot({
+  imports: [ProductModule,MomoModule,TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
       port: 3306,

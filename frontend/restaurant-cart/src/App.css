@@ -5,20 +5,24 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   background-color: white;
   width: 100%; /* Đảm bảo item chiếm toàn bộ chiều rộng */
-  height: 250px; /* Tăng chiều cao từ 160px lên 250px */
+  height: auto; /* Điều chỉnh để chiều cao linh hoạt */
+  min-height: 300px; /* Tăng chiều cao tối thiểu cho ô sản phẩm */
+  display: flex;
+  flex-direction: column; /* Đảm bảo các phần tử bên trong được sắp xếp theo chiều dọc */
 }
 
 .menu-item img {
   width: 100%;
-  height: 180px; /* Tăng chiều cao ảnh từ 160px lên 180px */
+  height: 200px; /* Tăng chiều cao ảnh từ 180px lên 200px để không bị cắt */
   object-fit: cover;
 }
 
 .menu-item-content {
   padding: 15px; /* Tăng padding từ 12px lên 15px */
   display: flex;
+  flex-direction: column; /* Căn chỉnh lại nội dung */
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start; /* Căn trái nội dung */
 }
 
 .menu-item-text {
@@ -34,17 +38,29 @@
 .menu-item-text p {
   color: #4a5568;
   font-size: 1rem; /* Tăng font-size từ 0.875rem lên 1rem */
-  margin: 0;
+  margin: 5px 0; /* Thêm khoảng cách giữa các đoạn văn */
 }
 
+/* Style cho nút giỏ hàng */
 .menu-item-cart {
   color: #ef4444;
-  font-size: 1.75rem; /* Tăng font-size từ 1.5rem lên 1.75rem */
+  font-size: 1.75rem; /* Tăng kích thước chữ để icon xe đẩy lớn hơn */
   cursor: pointer;
+  margin-top: auto; /* Đảm bảo nút giỏ hàng luôn ở dưới cùng */
+  z-index: 10; /* Đảm bảo nút luôn nằm trên các phần tử khác */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .menu-item-cart:hover {
   color: #dc2626;
+}
+
+/* Đảm bảo rằng icon xe đẩy không bị ẩn */
+.menu-item-cart::before {
+  content: '🛒';
+  margin-right: 5px;
 }
 
 /* Style cho giỏ hàng (không thay đổi nhiều) */
@@ -151,26 +167,6 @@
 .dine-in.active {
   background-color: #ef4444; /* Màu đỏ khi nhấn */
   color: white;
-}
-
-/* Style cho Back to home (không thay đổi) */
-.back-to-home {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 10px;
-  background-color: #f0f0f0;
-  margin-bottom: 15px;
-}
-
-.back-to-home-icon {
-  margin-right: 10px;
-  font-size: 1.5rem;
-}
-
-.back-to-home-text {
-  font-size: 1.1rem;
-  font-weight: 700;
 }
 
 /* Style cho thanh chọn danh mục */
