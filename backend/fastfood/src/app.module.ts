@@ -10,13 +10,16 @@ import { Category } from './category/category.entity';
 import { Option } from './options/option.entity';
 import { MomoModule } from './momo/momo.module';
 
+
+
+
 @Module({
   imports: [ProductModule,MomoModule,TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: 'root',
+      password: '1234567890',
       database: 'cnpm',
       entities: [Product,Category,Option],
       synchronize: true,
@@ -25,5 +28,10 @@ import { MomoModule } from './momo/momo.module';
   providers: [AppService],
 })
 export class AppModule {
-  constructor(private dataSource:DataSource){}
+  constructor(private dataSource:DataSource){
+    this.dataSource.initialize()
+      .then(() => console.log('✅ Kết nối CSDL thành công!'))
+      .catch((err) => console.error('❌ Kết nối CSDL thất bại:', err));
+  }
 }
+
