@@ -2,7 +2,7 @@
 import { Entity, PrimaryColumn, Column, ManyToMany } from 'typeorm';
 import { Product } from 'src/products/product.entity';
 
-@Entity()
+@Entity('option')
 export class Option {
     @PrimaryColumn({ type: 'varchar', length: 50 })
     optionID: string;
