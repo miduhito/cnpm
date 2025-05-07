@@ -4,7 +4,10 @@ import Menu from './components/Menu';
 import Cart from './components/Cart';
 import './App.css';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import { FaHome } from 'react-icons/fa';
+import Payment from './components/Payment';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 function App() {
   const [cart, setCart] = useState([]);
@@ -20,11 +23,15 @@ function App() {
       });
   }, []);
   useEffect(() => {
-    // Lấy dữ liệu sản phẩm từ localStorage
-    const storedProducts = JSON.parse(localStorage.getItem('products')) || [];
-    setProducts(storedProducts);
+    const existingCartID = localStorage.getItem('cartID');
+    if (!existingCartID) {
+      axios.post('http://localhost:3001/cart', { cartID: uuidv4() })
+        .then(res => {
+          localStorage.setItem('cartID', res.data.cartID);
+        })
+        .catch(err => console.error(err));
+    }
   }, []);
-
   const categories = [
     { name: 'Burger', image: './images/hamburger.jpg' },
     { name: 'Drink', image: '/images/coca.jpg' },
@@ -36,36 +43,61 @@ function App() {
     ? products 
     : products.filter(product => product.category.name === selectedCategory);
 
-  const addToCart = (item, quantity, sideDishes) => {
-    setCart([...cart, { ...item, quantity, sideDishes }]);
+    const addToCart = async (item, quantity, sideDishes) => {
+      const cartID = localStorage.getItem('cartID');  // lấy cartID từ localStorage
+      const unitPrice = item.price;  // Bạn có thể thay thế theo logic tính giá sản phẩm.
+      const newItem = { ...item, quantity, sideDishes };
+      setCart([...cart, newItem]);
+      const newCartItem = {
+        cartID,
+        productID: item.productID,  // Tạo request với productID của item
+        quantity,
+        unitPrice,
+        sideDishes
   };
 
-  return (
+  try {
+    const response = await axios.post('http://localhost:3001/cart-items', newCartItem);
+    console.log('Sản phẩm đã được thêm vào giỏ:', response.data);
+    // Thực hiện thêm sản phẩm vào giỏ hàng trên frontend (cập nhật UI)
+    setCart(prevCart => [...prevCart, response.data]);
+  } catch (error) {
+    console.error('Lỗi khi thêm sản phẩm vào giỏ:', error.response ? error.response.data : error.message);
+  }
+};
+
+return (
+  <Router>
     <div className="container mt-4">
       <div className="back-to-home" style={{ width: '100%' }}>
         <FaHome className="back-to-home-icon" />
         <span className="back-to-home-text">Back to home</span>
       </div>
-      {/* <h1 className="restaurant-menu-title">Restaurant Menu</h1> */}
-      <div className="category-selector">
-        {/* Nút "All" để chọn tất cả sản phẩm */}
-        <button
-          className={`category-button ${selectedCategory === '' ? 'active' : ''}`}
-          onClick={() => setSelectedCategory('')}
-        >
-          <span>ㅤAllㅤ</span>
-        </button>
-        {categories.map((category) => (
-          <button
-            key={category.name}
-            className={`category-button ${selectedCategory === category.name ? 'active' : ''}`}
-            onClick={() => setSelectedCategory(category.name)}
-          >
-            <img src={category.image} alt={category.name} />
-            <span>{category.name}</span>
-          </button>
-        ))}
-      </div>
+
+      <Routes>
+        <Route path="/" element={
+          <div className="category-selector">
+            <button
+              className={`category-button ${selectedCategory === '' ? 'active' : ''}`}
+              onClick={() => setSelectedCategory('')}
+            >
+              <span>ㅤAllㅤ</span>
+            </button>
+            {categories.map((category) => (
+              <button
+                key={category.name}
+                className={`category-button ${selectedCategory === category.name ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(category.name)}
+              >
+                <img src={category.image} alt={category.name} />
+                <span>{category.name}</span>
+              </button>
+            ))}
+          </div>
+        } />
+        <Route path="/payment" element={<Payment/>} />
+      </Routes>
+
       <div className="row">
         <div className="col-md-8">
           <Menu items={menuItems} addToCart={addToCart} category={selectedCategory} />
@@ -75,7 +107,8 @@ function App() {
         </div>
       </div>
     </div>
-  );
+  </Router>
+);
 }
 
 export default App;

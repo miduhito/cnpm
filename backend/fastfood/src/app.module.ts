@@ -9,17 +9,21 @@ import { Product } from './products/product.entity';
 import { Category } from './category/category.entity';
 import { Option } from './options/option.entity';
 import { MomoModule } from './momo/momo.module';
+import { CartModule } from './cart/cart.module';
+import { Cart } from './cart/cart.entity';
+import { CartItem } from './cart/cart-item.entity';
+import { CartItemModule } from './cart/cart-item.module';
 
 @Module({
-  imports: [ProductModule,MomoModule,TypeOrmModule.forRoot({
+  imports: [ProductModule,MomoModule,CartModule,CartItemModule,TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
       port: 3306,
       username: 'root',
       password: 'root',
       database: 'cnpm',
-      entities: [Product,Category,Option],
-      synchronize: true,
+      entities: [Product,Category,Option,Cart,CartItem],
+      synchronize: false,
     }),],
   controllers: [AppController],
   providers: [AppService],

@@ -14,9 +14,9 @@ const Payment = () => {
   return (
     <>
       <div className="payment-header">
-        <Button variant="link" className="back-btn">
-          <span className="back-icon">←</span> Back
-        </Button>
+        <a href="http://localhost:3000/"><Button variant="link" className="back-btn">
+          <span className="back-icon" >←</span> Back
+        </Button></a>
         <Breadcrumb>
           <Breadcrumb.Item active>Payment</Breadcrumb.Item>
         </Breadcrumb>

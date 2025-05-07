@@ -8,6 +8,7 @@ async function bootstrap() {
     origin: 'http://localhost:3000', // Cho phép frontend từ localhost:3000
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Các phương thức HTTP được phép
     allowedHeaders: ['Content-Type', 'Authorization'], // Các headers được phép
+    credentials: true,
   });
   await app.listen(process.env.PORT ?? 3001);
 }

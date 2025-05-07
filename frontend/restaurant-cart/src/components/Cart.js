@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import CartItem from './CartItem';
-
+import { useNavigate } from 'react-router-dom';
 function Cart({ cartItems, setCart }) {
   const [isDineInActive, setIsDineInActive] = useState(false);
-
+  const navigate = useNavigate()
+  const handlePayment=()=> navigate('/payment');
   const updateQuantity = (index, newQuantity) => {
     const updatedCart = [...cartItems];
     updatedCart[index].quantity = Math.max(0, newQuantity);
@@ -51,7 +52,7 @@ function Cart({ cartItems, setCart }) {
             Total: <span>Kr {grandTotal.toFixed(2)}</span>
             <div className="cart-total-tax">(incl. tax 10% = Kr {tax.toFixed(2)})</div>
           </div>
-          <button className="cart-payment">PAYMENT</button>
+          <button className="cart-payment" onClick={handlePayment}>PAYMENT</button>
         </>
       )}
     </div>

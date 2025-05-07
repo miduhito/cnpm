@@ -1,7 +1,8 @@
 /* eslint-disable prettier/prettier */
-import { Entity, Column, PrimaryColumn,ManyToOne,JoinColumn,ManyToMany,JoinTable} from 'typeorm';
+import { Entity, Column, PrimaryColumn,ManyToOne,JoinColumn,ManyToMany,JoinTable,OneToMany} from 'typeorm';
 import { Category } from 'src/category/category.entity';
 import { Option } from 'src/options/option.entity';
+import { CartItem } from 'src/cart/cart-item.entity';
 @Entity()
 export class Product {
     @PrimaryColumn({ type: 'varchar', length: 50 })
@@ -38,4 +39,6 @@ export class Product {
     },
     })
     options: Option[];
+    @OneToMany(() => CartItem, (cartItem) => cartItem.product)
+  cartItems: CartItem[];
 }
