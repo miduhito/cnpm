@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import CartItem from './CartItem';
 import { useNavigate } from 'react-router-dom';
+
 function Cart({ cartItems, setCart }) {
   const [isDineInActive, setIsDineInActive] = useState(false);
-  const navigate = useNavigate()
-  const handlePayment=()=> navigate('/payment');
+  const navigate = useNavigate();
+
+  const handlePayment = () => navigate('/payment');
+
   const updateQuantity = (index, newQuantity) => {
     const updatedCart = [...cartItems];
     updatedCart[index].quantity = Math.max(0, newQuantity);
@@ -13,13 +16,9 @@ function Cart({ cartItems, setCart }) {
     }
     setCart(updatedCart);
   };
+
   const total = cartItems.reduce((sum, item) => {
-    const optionsPrice = item.sideDishes?.reduce((optSum, dishName) => {
-      const found = item.options?.find(opt => opt.name === dishName);
-      return optSum + (found ? parseFloat(found.price) : 0);
-    }, 0) || 0;
-  
-    const itemTotal = (parseFloat(item.price) + optionsPrice) * item.quantity;
+    const itemTotal = parseFloat(item.unitPrice) * item.quantity;
     return sum + itemTotal;
   }, 0);
   const tax = total * 0.1;
@@ -42,7 +41,7 @@ function Cart({ cartItems, setCart }) {
         <>
           {cartItems.map((item, index) => (
             <CartItem
-              key={index}
+              key={item.cartItemID || index}
               item={item}
               index={index}
               updateQuantity={updateQuantity}
@@ -52,7 +51,9 @@ function Cart({ cartItems, setCart }) {
             Total: <span>Kr {grandTotal.toFixed(2)}</span>
             <div className="cart-total-tax">(incl. tax 10% = Kr {tax.toFixed(2)})</div>
           </div>
-          <button className="cart-payment" onClick={handlePayment}>PAYMENT</button>
+          <button className="cart-payment" onClick={handlePayment}>
+            PAYMENT
+          </button>
         </>
       )}
     </div>
