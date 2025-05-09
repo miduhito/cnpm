@@ -78,6 +78,10 @@ function App() {
       return;
     }
 
+    // Chuẩn hóa optionIDs
+    const normalizedOptionIDs = Array.isArray(optionIDs) ? optionIDs : [];
+
+    // Tạo đối tượng sản phẩm mới
     const newItem = {
       product: {
         productID: item.productID,
@@ -88,50 +92,62 @@ function App() {
         quantity: item.quantity,
       },
       quantity,
-      options: optionIDs.map((id) => {
-        const opt = item.options?.find((o) => o.optionID === id) || {};
+      options: normalizedOptionIDs.map((id) => {
+        const opt = item.options?.find((o) => o.optionID === id) || null;
         return {
           optionID: id,
           name: opt.name || 'Unknown',
           price: opt.price || 0,
         };
       }),
-      unitPrice: parseFloat(item.price) + (optionIDs.reduce((sum, id) => {
-        const opt = item.options?.find((o) => o.optionID === id);
-        return sum + (opt ? parseFloat(opt.price) : 0);
-      }, 0)),
+      unitPrice:
+        parseFloat(item.price) +
+        normalizedOptionIDs.reduce((sum, id) => {
+          const opt = item.options?.find((o) => o.optionID === id);
+          return sum + (opt ? parseFloat(opt.price) : 0);
+        }, 0),
     };
-    setCart((prevCart) => [...prevCart, newItem]);
 
     try {
+      // Gửi yêu cầu thêm sản phẩm vào giỏ hàng
       const response = await axios.post(`http://localhost:3001/cart/${cartID}/add`, {
         productID: item.productID,
         quantity,
-        optionIDs: optionIDs || [],
+        optionIDs: normalizedOptionIDs,
       });
 
+      console.log('API response:', response.data); // Debug dữ liệu từ API
+
+      // Cập nhật giỏ hàng với dữ liệu từ API
       setCart((prevCart) => {
+        // Chuẩn hóa options từ API
+        const responseOptions = Array.isArray(response.data.options)
+          ? response.data.options.map((opt) => opt.optionID).sort()
+          : [];
+
         const existingItemIndex = prevCart.findIndex(
           (cartItem) =>
             cartItem.product.productID === response.data.product.productID &&
-            JSON.stringify(cartItem.options.map((opt) => opt.optionID).sort()) ===
-              JSON.stringify(response.data.options.map((opt) => opt.optionID).sort())
+            JSON.stringify(
+              (cartItem.options || []).map((opt) => opt.optionID).sort()
+            ) === JSON.stringify(responseOptions)
         );
 
-        const updatedCart = [...prevCart.slice(0, -1)];
-        if (existingItemIndex !== -1 && existingItemIndex < updatedCart.length) {
+        if (existingItemIndex !== -1) {
+          // Nếu sản phẩm đã tồn tại, cập nhật số lượng
+          const updatedCart = [...prevCart];
           updatedCart[existingItemIndex].quantity += quantity;
           updatedCart[existingItemIndex].cartItemID = response.data.cartItemID;
           updatedCart[existingItemIndex].unitPrice = response.data.unitPrice;
-          updatedCart[existingItemIndex].options = response.data.options;
+          updatedCart[existingItemIndex].options = response.data.options || [];
+          return updatedCart;
         } else {
-          updatedCart.push(response.data);
+          // Nếu sản phẩm mới, thêm vào giỏ hàng
+          return [...prevCart, { ...response.data, options: response.data.options || [] }];
         }
-        return updatedCart;
       });
     } catch (error) {
       console.error('Lỗi khi thêm sản phẩm vào giỏ:', error.response ? error.response.data : error.message);
-      setCart((prevCart) => prevCart.slice(0, -1));
     }
   };
 

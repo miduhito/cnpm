@@ -17,16 +17,18 @@ import { Order } from './order/order.entity';
 import { OrderModule } from './order/order.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { Invoice } from './invoice/invoice.entity';
+import { FeedbackModule } from './feedback/feedback.module';
+import { Feedback } from './feedback/feedback.entity';
 
 @Module({
-  imports: [ProductModule,CartModule,CartItemModule,OrderModule,InvoiceModule,TypeOrmModule.forRoot({
+  imports: [ProductModule,CartModule,CartItemModule,OrderModule,InvoiceModule,FeedbackModule,TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
       port: 3306,
       username: 'root',
       password: 'root',
       database: 'cnpm',
-      entities: [Product,Category,Option,Cart,CartItem,CartItemOption,Order,Invoice],
+      entities: [Product,Category,Option,Cart,CartItem,CartItemOption,Order,Invoice,Feedback],
       synchronize: false,
     })],
   controllers: [AppController],

@@ -20,9 +20,15 @@ function AddToCartPopup({ item, onClose, onAddToCart }) {
 
   // Xử lý chọn/bỏ chọn tùy chọn
   const handleOptionChange = (optionID) => {
-    setSelectedOptionIDs((prev) =>
-      prev.includes(optionID) ? prev.filter((id) => id !== optionID) : [...prev, optionID]
-    );
+    if (item.category.name === 'Drink') {
+      // Chỉ cho phép chọn 1 option cho Drink
+      setSelectedOptionIDs([optionID]);
+    } else {
+      // Cho phép chọn nhiều option cho danh mục khác
+      setSelectedOptionIDs((prev) =>
+        prev.includes(optionID) ? prev.filter((id) => id !== optionID) : [...prev, optionID]
+      );
+    }
   };
 
   return (
@@ -41,7 +47,7 @@ function AddToCartPopup({ item, onClose, onAddToCart }) {
             <div className="popup-sku">SKU</div>
             <div>401</div>
             <div className="popup-name">{item.name}</div>
-            <div>Burger</div>
+            <div>{item.category.name}</div>
           </div>
           <div className="popup-price-container">
             <div className="popup-price-label">Unit Price</div>
@@ -83,13 +89,16 @@ function AddToCartPopup({ item, onClose, onAddToCart }) {
         <div className="popup-side-dishes">
           <div className="popup-side-dishes-label">SIDE dishes (*)</div>
           <div style={{ fontSize: '0.75rem', color: '#666' }}>
-            Please select one of the properties below
+            {item.category.name === 'Drink'
+              ? 'Please select one option'
+              : 'Please select one or more options'}
           </div>
           {item.options && item.options.length > 0 ? (
             item.options.map((option) => (
               <label key={option.optionID} style={{ display: 'block', marginTop: '5px' }}>
                 <input
-                  type="checkbox"
+                  type={item.category.name === 'Drink' ? 'radio' : 'checkbox'}
+                  name={item.category.name === 'Drink' ? `option-${item.productID}` : undefined}
                   checked={selectedOptionIDs.includes(option.optionID)}
                   onChange={() => handleOptionChange(option.optionID)}
                 />

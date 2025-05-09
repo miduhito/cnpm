@@ -1,6 +1,8 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { memo, useState } from "react";
 import { Breadcrumb, Button, Row, Col, Form } from "react-bootstrap";
 import { QRCodeCanvas } from 'qrcode.react';
+import Rating from 'react-rating-stars-component';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import "./Payment.scss";
@@ -31,17 +33,19 @@ function MomoPersonalQR({ amount }) {
 const Payment = ({ cartItems }) => {
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [showInvoice, setShowInvoice] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    note: '',
-  });
+  const [formData, setFormData] = useState({ name: '', note: '' });
   const [error, setError] = useState('');
   const [printInvoice, setPrintInvoice] = useState(false);
+  const [orderID, setOrderID] = useState(uuidv4());
+
+  // Feedback states
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   const totalOrder = cartItems.reduce((sum, item) => {
-    return (sum + (parseFloat(item.unitPrice) * item.quantity) + 0.1 * (sum + (parseFloat(item.unitPrice) * item.quantity)));
+    return sum + (item.unitPrice * item.quantity);
   }, 0);
-
   const totalWithFee = totalOrder + (totalOrder * 0.1);
 
   const handlePaymentMethodChange = (e) => {
@@ -58,16 +62,14 @@ const Payment = ({ cartItems }) => {
       setError('Vui lòng điền tên khách hàng');
       return;
     }
-  
+
     const cartID = localStorage.getItem('cartID');
     if (!cartID) {
       setError('Không tìm thấy giỏ hàng');
       return;
     }
-  
+
     try {
-      const orderID = uuidv4();
-      // Create order
       await axios.post('http://localhost:3001/orders', {
         orderID,
         customerName: formData.name,
@@ -77,36 +79,67 @@ const Payment = ({ cartItems }) => {
         note: formData.note,
         print: printInvoice ? 1 : 0,
       });
-  
-      // Map payment method to match enum
+
       const paymentMethodMap = {
         cash: 'CASH',
         momo: 'MOMO',
       };
-  
-      // Create invoice
+
       const invoiceData = {
         ID: uuidv4(),
-        customerName: formData.name,
-        paymentMethod: paymentMethodMap[paymentMethod] || paymentMethod.toUpperCase(),
+        customerName: formData.name.trim(),
+        paymentMethod: paymentMethodMap[paymentMethod] || 'CASH',
         totalPrice: Number(totalWithFee.toFixed(2)),
         orderID,
+        createdDate: new Date().toISOString(),
       };
-      console.log('Sending invoice data:', invoiceData);
+
+      if (!['CASH', 'MOMO', 'CARD', 'ZALO_PAY'].includes(invoiceData.paymentMethod)) {
+        throw new Error('Error payment method');
+      }
+
       await axios.post('http://localhost:3001/invoices', invoiceData);
-  
+
       // Reset cart
       localStorage.removeItem('cartID');
-      await axios.post('http://localhost:3001/cart', { cartID: uuidv4() }).then((res) => {
-        localStorage.setItem('cartID', res.data.cartID);
-      });
-  
+      const response = await axios.post('http://localhost:3001/cart', { cartID: uuidv4() });
+      localStorage.setItem('cartID', response.data.cartID);
+
       setShowInvoice(true);
       setError('');
     } catch (err) {
-      setError('Lỗi khi tạo đơn hàng hoặc hóa đơn: ' + (err.response?.data?.message || err.message));
-      console.error('Chi tiết lỗi:', err.response?.data || err);
+      const errorMessage = err.response?.data?.message || err.message;
+      setError(`Error: ${errorMessage}`);
+      console.error('Error detail:', err.response?.data || err);
     }
+  };
+
+  const handleSubmitFeedback = async () => {
+    if (rating === 0) {
+      setError('Pick one to rate');
+      return;
+    }
+
+    try {
+      const feedback = {
+        ID: uuidv4(),
+        orderID,
+        rating,
+        comment,
+        createdAt: new Date().toISOString(),
+      };
+      await axios.post('http://localhost:3001/feedbacks', feedback);
+      setFeedbackSent(true);
+      setError('');
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message;
+      setError(`Gửi đánh giá thất bại: ${errorMessage}`);
+      console.error('Chi tiết lỗi:', error.response?.data || error);
+    }
+  };
+
+  const handleRadioRatingChange = (e) => {
+    setRating(Number(e.target.value));
   };
 
   if (showInvoice) {
@@ -114,23 +147,75 @@ const Payment = ({ cartItems }) => {
       <div className="container">
         <h2 className="text-center">Hóa đơn</h2>
         <div className="invoice">
-          <p><strong>Tên khách hàng:</strong> {formData.name}</p>
-          <p><strong>Ghi chú:</strong> {formData.note || 'Không có'}</p>
-          <p><strong>Phương thức thanh toán:</strong> {paymentMethod === 'cash' ? 'Tiền mặt' : 'MoMo'}</p>
-          <h4>Chi tiết đơn hàng</h4>
+          <p><strong>Name:</strong> {formData.name}</p>
+          <p><strong>Note:</strong> {formData.note || 'None'}</p>
+          <p><strong>Payment method:</strong> {paymentMethod === 'cash' ? 'Cash' : 'MoMo'}</p>
+          <h4>Orders</h4>
           <ul>
             {cartItems.map((item, index) => (
               <li key={item.cartItemID || index}>
                 {item.product.name} x {item.quantity} - {formatter(item.unitPrice * item.quantity)}
                 {item.options?.length > 0 && (
-                  <span> (Tùy chọn: {item.options.map((opt) => opt.name).join(', ')})</span>
+                  <span> (Option: {item.options.map((opt) => opt.name).join(', ')})</span>
                 )}
               </li>
             ))}
           </ul>
-          <p><strong>Tổng cộng:</strong> {formatter(totalWithFee)}</p>
-          <Button variant="primary" onClick={() => window.location.href = 'http://localhost:3000/'}>
-            Quay lại trang chủ
+          <p><strong>Total:</strong> {formatter(totalWithFee)}</p>
+          {!feedbackSent && (
+            <div className="feedback-form" style={{ marginTop: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '5px' }}>
+              <h4>Rating Orders</h4>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ fontWeight: 'bold', marginBottom: '5px', display: 'block' }}>
+                  Pick (1-5):
+                </label>
+                <Rating
+                  value={rating}
+                  count={5}
+                  size={30}
+                  activeColor="#ffd700"
+                  onChange={(newRating) => setRating(newRating)}
+                />
+                <div style={{ marginTop: '10px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <label key={star} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                      <input
+                        type="radio"
+                        name="rating"
+                        value={star}
+                        checked={rating === star}
+                        onChange={handleRadioRatingChange}
+                        style={{ marginRight: '5px' }}
+                      />
+                      {star} starts
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ fontWeight: 'bold', marginBottom: '5px', display: 'block' }}>
+                  Comment:
+                </label>
+                <textarea
+                  rows={4}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Share your thoughts"
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                />
+              </div>
+              <Button variant="success" onClick={handleSubmitFeedback}>
+                Send
+              </Button>
+            </div>
+          )}
+          {feedbackSent && <p className="text-success" style={{ marginTop: '15px' }}>Thanks for rating</p>}
+          <Button
+            variant="primary"
+            onClick={() => window.location.href = 'http://localhost:3000/'}
+            style={{ marginTop: '15px' }}
+          >
+            Back
           </Button>
         </div>
       </div>
@@ -152,7 +237,7 @@ const Payment = ({ cartItems }) => {
       <div className="container">
         {error && <div className="alert alert-danger">{error}</div>}
         <Row>
-          <Col lg={6} md={12} sm={12} xs={12}>
+          <Col lg={6}>
             <div className="checkout_input">
               <label>
                 Name<span className="required">*</span>
@@ -162,61 +247,48 @@ const Payment = ({ cartItems }) => {
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                placeholder="Enter your name"
+                placeholder="Nhập tên của bạn"
               />
             </div>
             <div className="checkout_input">
-              <label>
-                Note
-              </label>
+              <label>Note</label>
               <textarea
                 rows={5}
                 name="note"
                 value={formData.note}
                 onChange={handleInputChange}
-                placeholder="Enter note field"
+                placeholder="Nhập ghi chú"
               ></textarea>
             </div>
             <div className="payment-method">
               <h4>Payment method</h4>
-              <div className="payment-option">
-                <label className="payment-option-label">
-                  <input
-                    type="radio"
-                    name="payment-method"
-                    value="cash"
-                    checked={paymentMethod === 'cash'}
-                    onChange={handlePaymentMethodChange}
-                  />
-                  <span>Cash</span>
-                </label>
-              </div>
-              <div className="payment-option">
-                <label className="payment-option-label">
-                  <input
-                    type="radio"
-                    name="payment-method"
-                    value="momo"
-                    checked={paymentMethod === 'momo'}
-                    onChange={handlePaymentMethodChange}
-                  />
-                  <span>MoMo</span>
-                </label>
-              </div>
+              {['cash', 'momo'].map((method) => (
+                <div className="payment-option" key={method}>
+                  <label className="payment-option-label">
+                    <input
+                      type="radio"
+                      name="payment-method"
+                      value={method}
+                      checked={paymentMethod === method}
+                      onChange={handlePaymentMethodChange}
+                    />
+                    <span>{method === 'cash' ? 'Cash' : 'MoMo'}</span>
+                  </label>
+                </div>
+              ))}
               {paymentMethod === 'momo' && <MomoPersonalQR amount={totalOrder} />}
             </div>
-            <div className="print-invoice" style={{ marginTop: '20px' }}>
-              <Form.Check
-                type="checkbox"
-                label="Print Invoice"
-                checked={printInvoice}
-                onChange={() => setPrintInvoice(!printInvoice)}
-              />
-            </div>
+            <Form.Check
+              type="checkbox"
+              label="print Invoice"
+              checked={printInvoice}
+              onChange={() => setPrintInvoice(!printInvoice)}
+              style={{ marginTop: '20px' }}
+            />
           </Col>
-          <Col lg={6} md={12} sm={12} xs={12}>
+          <Col lg={6}>
             <div className="checkout_order">
-              <h3>Order</h3>
+              <h3>Orders</h3>
               <ul>
                 {cartItems.map((item, index) => (
                   <li key={item.cartItemID || index}>
@@ -229,12 +301,8 @@ const Payment = ({ cartItems }) => {
                     <b>{formatter(item.unitPrice * item.quantity)}</b>
                   </li>
                 ))}
-                <li>
-                  <span>Discount</span>
-                  <b> </b>
-                </li>
                 <li className="checkout_order_subtotal">
-                  <h3>Total order</h3>
+                  <h3>Total</h3>
                   <b>{formatter(totalWithFee)}</b>
                 </li>
               </ul>

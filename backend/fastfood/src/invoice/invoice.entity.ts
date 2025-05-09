@@ -6,7 +6,7 @@ export class Invoice {
   @PrimaryColumn()
   ID: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'datetime', nullable: false, default: () => 'CURRENT_TIMESTAMP' })
   createdDate: Date;
 
   @Column()
