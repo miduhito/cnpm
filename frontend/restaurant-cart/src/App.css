@@ -1,331 +1,80 @@
-/* Style cho menu item (cập nhật) */
-.menu-item {
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  background-color: white;
-  width: 100%; /* Đảm bảo item chiếm toàn bộ chiều rộng */
-  height: auto; /* Điều chỉnh để chiều cao linh hoạt */
-  min-height: 300px; /* Tăng chiều cao tối thiểu cho ô sản phẩm */
+.app-container {
   display: flex;
-  flex-direction: column; /* Đảm bảo các phần tử bên trong được sắp xếp theo chiều dọc */
 }
 
-.menu-item img {
-  width: 100%;
-  height: 200px; /* Tăng chiều cao ảnh từ 180px lên 200px để không bị cắt */
-  object-fit: cover;
+.sidebar {
+  width: 250px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+  height: 100vh;
+  position: fixed;
+  padding-top: 20px;
+  transition: all 0.3s ease;
 }
 
-.menu-item-content {
-  padding: 15px; /* Tăng padding từ 12px lên 15px */
-  display: flex;
-  flex-direction: column; /* Căn chỉnh lại nội dung */
-  justify-content: space-between;
-  align-items: flex-start; /* Căn trái nội dung */
-}
-
-.menu-item-text {
-  text-align: left;
-}
-
-.menu-item-text h5 {
-  font-size: 1.25rem; /* Tăng font-size từ 1.125rem lên 1.25rem */
-  font-weight: bold;
-  margin: 0;
-}
-
-.menu-item-text p {
-  color: #4a5568;
-  font-size: 1rem; /* Tăng font-size từ 0.875rem lên 1rem */
-  margin: 5px 0; /* Thêm khoảng cách giữa các đoạn văn */
-}
-
-/* Style cho nút giỏ hàng */
-.menu-item-cart {
-  color: #ef4444;
-  font-size: 1.75rem; /* Tăng kích thước chữ để icon xe đẩy lớn hơn */
+.sidebar-item {
+  padding: 15px 20px;
+  font-size: 16px;
+  font-weight: 500;
   cursor: pointer;
-  margin-top: auto; /* Đảm bảo nút giỏ hàng luôn ở dưới cùng */
-  z-index: 10; /* Đảm bảo nút luôn nằm trên các phần tử khác */
   display: flex;
   align-items: center;
-  justify-content: center;
+  transition: background-color 0.3s ease;
 }
 
-.menu-item-cart:hover {
-  color: #dc2626;
+.sidebar-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Đảm bảo rằng icon xe đẩy không bị ẩn */
-.menu-item-cart::before {
-  content: '🛒';
-  margin-right: 5px;
+.sidebar-icon {
+  margin-right: 10px;
 }
 
-/* Style cho giỏ hàng (không thay đổi nhiều) */
-.cart-container {
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  background-color: white;
-  padding: 15px;
-  margin-top: -20px; /* Vị trí cao hơn */
+.main-content {
+  margin-left: 250px;
+  padding: 30px;
+  width: calc(100% - 250px);
+  background-color: #f3f3f3;
+  min-height: 100vh;
 }
 
-.cart-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #ef4444;
-  margin-bottom: 10px;
+.restaurant-menu-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
 }
 
-.cart-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.cart-item:last-child {
-  border-bottom: none;
-}
-
-.cart-item-quantity {
-  display: flex;
-  align-items: center;
-}
-
-.cart-item-quantity button {
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin: 0 5px;
-}
-
-.cart-item-quantity button:hover {
-  background-color: #f0f0f0;
-}
-
-.cart-item-quantity span {
-  margin: 0 10px;
-}
-
-.cart-item-price {
-  color: #ef4444;
-  font-weight: bold;
-}
-
-.cart-total {
-  margin-top: 15px;
-  font-size: 1.125rem;
-  font-weight: bold;
-}
-
-.cart-total-tax {
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.cart-payment {
-  background-color: #ef4444;
-  color: white;
-  border: none;
-  padding: 10px;
-  width: 100%;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.cart-payment:hover {
-  background-color: #dc2626;
-}
-
-.dine-in {
-  background-color: #f0f0f0;
-  color: #333;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.3s; /* Thêm hiệu ứng chuyển đổi màu */
-}
-
-.dine-in.active {
-  background-color: #ef4444; /* Màu đỏ khi nhấn */
-  color: white;
-}
-
-/* Style cho thanh chọn danh mục */
 .category-selector {
   display: flex;
-  overflow-x: auto;
+  gap: 15px;
   margin-bottom: 20px;
-  padding-bottom: 5px;
+  flex-wrap: wrap;
 }
 
 .category-button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  border: none;
-  background-color: #f0f0f0;
-  border-radius: 10px;
-  padding: 10px;
-  margin-right: 10px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
   cursor: pointer;
-  transition: background-color 0.3s;
 }
 
 .category-button img {
   width: 50px;
   height: 50px;
-  border-radius: 50%;
-  margin-bottom: 5px;
-}
-
-.category-button span {
-  font-size: 0.875rem;
-}
-
-.category-button:hover {
-  background-color: #e0e0e0;
+  margin-bottom: 8px;
 }
 
 .category-button.active {
-  background-color: #1e3a8a;
-  color: white;
+  border-color: #dc2626;
+  transform: scale(1.05);
 }
 
-/* Style cho Restaurant Menu (không thay đổi) */
-.restaurant-menu-title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
-
-/* Style cho popup (không thay đổi) */
-.popup-body {
-  padding: 20px;
-}
-
-.popup-header {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 15px;
-}
-
-.popup-sku {
-  font-weight: bold;
-}
-
-.popup-name {
-  font-weight: bold;
-}
-
-.popup-price-container {
-  margin-left: auto;
-  text-align: right;
-}
-
-.popup-price-label {
-  font-weight: bold;
-}
-
-.popup-price {
-  color: #ef4444;
-  font-weight: bold;
-}
-
-.popup-quantity {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 10px 0;
-}
-
-.popup-quantity span {
-  font-weight: bold;
-}
-
-.popup-quantity div {
-  display: flex;
-  align-items: center;
-}
-
-.popup-quantity button {
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  margin: 0 10px;
-}
-
-.popup-quantity button:hover {
-  background-color: #f0f0f0;
-}
-
-.popup-details {
-  margin: 10px 0;
-}
-
-.popup-details div {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 5px;
-}
-
-.popup-detail-label {
-  font-weight: bold;
-}
-
-.popup-side-dishes {
-  margin: 10px 0;
-}
-
-.popup-side-dishes-label {
-  font-weight: bold;
-}
-
-.popup-add-button {
-  background-color: #ef4444;
-  color: white;
-  border: none;
-  padding: 10px;
-  width: 100%;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.popup-add-button:hover {
-  background-color: #dc2626;
-}
-
-.popup-add-button::before {
-  content: '🛒';
-  margin-right: 5px;
+.category-button:hover {
+  transform: scale(1.05);
 }

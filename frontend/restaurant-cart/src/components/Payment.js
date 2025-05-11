@@ -1,20 +1,24 @@
 import { memo } from "react";
 import { Breadcrumb, Button, Row, Col } from "react-bootstrap";
-import "./Payment.scss";
+import "./Payment.scss"; // Import file SCSS
 
-// Hàm định dạng tiền tệ
+// Hàm định dạng tiền tệ (chuyển từ Kr sang VND với tỷ giá giả định 1 Kr = 23,000 VND)
 const formatter = (value) => {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
-  }).format(value);
+  }).format(value * 23000);
 };
 
 const Payment = () => {
+  const urlParams = new URLSearchParams(window.location.hash.split('?')[1]);
+  const cartItems = JSON.parse(urlParams.get('cart') || '[]');
+  const total = parseFloat(urlParams.get('total') || 0);
+
   return (
     <>
       <div className="payment-header">
-        <Button variant="link" className="back-btn">
+        <Button variant="link" className="back-btn" onClick={() => window.location.href = '#/'}>
           <span className="back-icon">←</span> Back
         </Button>
         <Breadcrumb>
@@ -23,7 +27,6 @@ const Payment = () => {
       </div>
       <div className="container">
         <Row>
-          {/* Cột trái: Form thông tin */}
           <Col lg={6} md={12} sm={12} xs={12}>
             <div className="checkout_input">
               <label>
@@ -51,8 +54,6 @@ const Payment = () => {
                 <textarea rows={5} placeholder="Enter note field"></textarea>
               </div>
             </div>
-
-            {/* Thêm phần phương thức thanh toán */}
             <div className="payment-method">
               <h4>Payment method</h4>
               <div className="payment-option">
@@ -76,25 +77,30 @@ const Payment = () => {
                   <span>Paypal</span>
                 </label>
               </div>
+              {/* TODO: Integrate MoMo payment when backend supports */}
             </div>
           </Col>
-
-          {/* Cột phải: Tóm tắt đơn hàng */}
           <Col lg={6} md={12} sm={12} xs={12}>
             <div className="checkout_order">
               <h3>Order</h3>
               <ul>
+                {cartItems.map((item, index) => (
+                  <li key={index}>
+                    <span>{item.name} x {item.quantity}</span>
+                    <b>Kr {(item.price * item.quantity).toFixed(2)}</b>
+                  </li>
+                ))}
                 <li>
                   <span>Discount</span>
                   <b>0 VND</b>
                 </li>
                 <li className="checkout_order_subtotal">
                   <h3>Total order</h3>
-                  <b>{formatter(200000)}</b>
+                  <b>{formatter(total)}</b>
                 </li>
               </ul>
               <button type="button" className="button-submit">
-                Pay now {formatter(200000)}
+                Pay now {formatter(total)}
               </button>
             </div>
           </Col>

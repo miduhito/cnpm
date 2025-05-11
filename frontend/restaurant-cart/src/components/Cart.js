@@ -12,12 +12,12 @@ function Cart({ cartItems, setCart }) {
     }
     setCart(updatedCart);
   };
+
   const total = cartItems.reduce((sum, item) => {
     const optionsPrice = item.sideDishes?.reduce((optSum, dishName) => {
-      const found = item.options?.find(opt => opt.name === dishName);
+      const found = item.options?.find((opt) => opt.name === dishName);
       return optSum + (found ? parseFloat(found.price) : 0);
     }, 0) || 0;
-  
     const itemTotal = (parseFloat(item.price) + optionsPrice) * item.quantity;
     return sum + itemTotal;
   }, 0);
@@ -51,7 +51,15 @@ function Cart({ cartItems, setCart }) {
             Total: <span>Kr {grandTotal.toFixed(2)}</span>
             <div className="cart-total-tax">(incl. tax 10% = Kr {tax.toFixed(2)})</div>
           </div>
-          <button className="cart-payment">PAYMENT</button>
+          <button
+            className="cart-payment"
+            onClick={() => {
+              // Điều hướng đến Payment với dữ liệu giỏ hàng
+              window.location.href = `#/payment?cart=${JSON.stringify(cartItems)}&total=${grandTotal}`;
+            }}
+          >
+            PAYMENT
+          </button>
         </>
       )}
     </div>
