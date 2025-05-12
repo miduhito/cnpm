@@ -1,3 +1,4 @@
+// MenuItem.js
 import React from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
 
@@ -12,7 +13,7 @@ function MenuItem({ item, index, onItemClick, onAddToCart }) {
   const handleAddToCart = (e) => {
     e.stopPropagation();
     if (onAddToCart) {
-      onAddToCart({ ...item, quantity: 1, sideDish: 'Vegetables' });
+      onAddToCart({ ...item, quantity: 1, selectedOptions: [] }); // Khởi tạo với options rỗng
     }
   };
 
@@ -41,7 +42,7 @@ function MenuItem({ item, index, onItemClick, onAddToCart }) {
           <h5 style={{ fontSize: '16px', fontWeight: '500', color: '#1F2937' }}>
             {index}. {item.name}
           </h5>
-          <p style={{ fontSize: '14px', color: '#6B7280' }}>Kr {item.price}.00</p>
+          <p style={{ fontSize: '14px', color: '#6B7280' }}>${item.price.toFixed(2)}</p>
         </div>
         <FaShoppingCart
           onClick={handleAddToCart}

@@ -16,9 +16,6 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false,
-    "types": ["node"]  // <-- Thêm dòng này
+    "noFallthroughCasesInSwitch": false
   }
 }
-
-

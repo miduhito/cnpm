@@ -2,11 +2,23 @@ import React, { useState } from 'react';
 
 function AddToCartPopup({ item, onClose, onAddToCart }) {
   const [quantity, setQuantity] = useState(1);
-  const [sideDish, setSideDish] = useState('Vegetables');
+  const [selectedOptions, setSelectedOptions] = useState([]);
+
+  const handleOptionChange = (option) => {
+    if (selectedOptions.some((opt) => opt.optionID === option.optionID)) {
+      setSelectedOptions(selectedOptions.filter((opt) => opt.optionID !== option.optionID));
+    } else {
+      setSelectedOptions([...selectedOptions, option]);
+    }
+  };
 
   const handleAdd = () => {
-    onAddToCart(item, quantity, sideDish);
+    onAddToCart(item, quantity, selectedOptions);
   };
+
+  const totalPrice =
+    parseFloat(item.price) +
+    selectedOptions.reduce((sum, opt) => sum + parseFloat(opt.price), 0);
 
   return (
     <div
@@ -41,14 +53,17 @@ function AddToCartPopup({ item, onClose, onAddToCart }) {
         />
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: '12px', color: '#6B7280' }}>SKU</div>
-          <div style={{ fontSize: '14px', color: '#1F2937' }}>401</div>
+          <div style={{ fontSize: '14px', color: '#1F2937' }}>{item.id}</div>
           <div style={{ fontSize: '16px', fontWeight: '500', color: '#1F2937' }}>{item.name}</div>
-          <div style={{ fontSize: '14px', color: '#6B7280' }}>Burger</div>
+          <div style={{ fontSize: '14px', color: '#6B7280' }}>
+            {item.category && item.category.name ? item.category.name : 'Unknown'}
+          </div>
+          <div style={{ fontSize: '14px', color: '#6B7280', marginTop: '5px' }}>{item.description}</div>
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontSize: '12px', color: '#6B7280' }}>Unit Price</div>
           <div style={{ fontSize: '16px', fontWeight: '500', color: '#ef4444' }}>
-            Kr {item.price}.00
+            ${parseFloat(item.price).toFixed(2)}
           </div>
         </div>
       </div>
@@ -85,22 +100,28 @@ function AddToCartPopup({ item, onClose, onAddToCart }) {
           </button>
         </div>
       </div>
-      <div style={{ marginBottom: '15px' }}>
-        <div style={{ fontSize: '14px', fontWeight: '500', color: '#1F2937', marginBottom: '5px' }}>
-          SIDE dishes (*)
+      {item.options && item.options.length > 0 && (
+        <div style={{ marginBottom: '15px' }}>
+          <div style={{ fontSize: '14px', fontWeight: '500', color: '#1F2937', marginBottom: '5px' }}>
+            Options
+          </div>
+          <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>
+            Select additional options
+          </div>
+          {item.options.map((option) => (
+            <label key={option.optionID} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <input
+                type="checkbox"
+                checked={selectedOptions.some((opt) => opt.optionID === option.optionID)}
+                onChange={() => handleOptionChange(option)}
+              />
+              <span>
+                {option.name} (+${parseFloat(option.price).toFixed(2)})
+              </span>
+            </label>
+          ))}
         </div>
-        <div style={{ fontSize: '12px', color: '#666', marginBottom: '5px' }}>
-          Please select one of the properties below
-        </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <input
-            type="checkbox"
-            checked={sideDish === 'Vegetables'}
-            onChange={() => setSideDish(sideDish === 'Vegetables' ? '' : 'Vegetables')}
-          />
-          <span>Vegetables</span>
-        </label>
-      </div>
+      )}
       <button
         onClick={handleAdd}
         style={{
@@ -115,10 +136,10 @@ function AddToCartPopup({ item, onClose, onAddToCart }) {
           fontSize: '16px',
           fontWeight: '500',
         }}
-        onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
-        onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+        onMouseOver={(e) => (e.target.style.backgroundColor = '#dc2626')}
+        onMouseOut={(e) => (e.target.style.backgroundColor = '#ef4444')}
       >
-        Kr {item.price * quantity}.00
+        ${(totalPrice * quantity).toFixed(2)}
       </button>
     </div>
   );

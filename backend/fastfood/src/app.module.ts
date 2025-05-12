@@ -8,30 +8,32 @@ import { DataSource } from 'typeorm';
 import { Product } from './products/product.entity';
 import { Category } from './category/category.entity';
 import { Option } from './options/option.entity';
-import { MomoModule } from './momo/momo.module';
-
-
-
+import { CartModule } from './cart/cart.module';
+import { Cart } from './cart/cart.entity';
+import { CartItem } from './cart/cart-item.entity';
+import { CartItemOption } from './cart/cart-item-sidedish.entity';
+import { CartItemModule } from './cart/cart-item.module';
+import { Order } from './order/order.entity';
+import { OrderModule } from './order/order.module';
+import { InvoiceModule } from './invoice/invoice.module';
+import { Invoice } from './invoice/invoice.entity';
+import { FeedbackModule } from './feedback/feedback.module';
+import { Feedback } from './feedback/feedback.entity';
 
 @Module({
-  imports: [ProductModule,MomoModule,TypeOrmModule.forRoot({
+  imports: [ProductModule,CartModule,CartItemModule,OrderModule,InvoiceModule,FeedbackModule,TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
       port: 3306,
       username: 'root',
-      password: '1234567890',
+      password: 'root',
       database: 'cnpm',
-      entities: [Product,Category,Option],
-      synchronize: true,
-    }),],
+      entities: [Product,Category,Option,Cart,CartItem,CartItemOption,Order,Invoice,Feedback],
+      synchronize: false,
+    })],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {
-  constructor(private dataSource:DataSource){
-    this.dataSource.initialize()
-      .then(() => console.log('✅ Kết nối CSDL thành công!'))
-      .catch((err) => console.error('❌ Kết nối CSDL thất bại:', err));
-  }
+  constructor(private dataSource:DataSource){}
 }
-

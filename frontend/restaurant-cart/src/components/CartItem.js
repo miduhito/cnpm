@@ -1,8 +1,10 @@
 import React from 'react';
 
 function CartItem({ item, index, updateQuantity }) {
-  const tax = item.price * item.quantity * 0.1;
-  const totalPrice = (item.price * item.quantity) + tax;
+  const optionTotal = (item.options || []).reduce((sum, opt) => sum + parseFloat(opt.price), 0);
+  const basePrice = parseFloat(item.unitPrice);
+  const tax = basePrice * item.quantity * 0.1;
+  const totalPrice = basePrice * item.quantity + tax;
 
   return (
     <div
@@ -17,11 +19,16 @@ function CartItem({ item, index, updateQuantity }) {
       }}
     >
       <span>
-        {index + 1}. {item.name}
+        {index + 1}. {item.product.name}
+        {item.options && item.options.length > 0 && (
+          <div style={{ fontSize: '12px', color: '#6B7280' }}>
+            Options: {item.options.map((opt) => opt.name).join(', ')}
+          </div>
+        )}
       </span>
       <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
         <button
-          onClick={() => updateQuantity(index, item.quantity - 1)}
+          onClick={() => updateQuantity(item.cartItemID, item.quantity - 1, index)}
           style={{
             padding: '2px 8px',
             backgroundColor: '#ef4444',
@@ -35,7 +42,7 @@ function CartItem({ item, index, updateQuantity }) {
         </button>
         <span>{item.quantity}</span>
         <button
-          onClick={() => updateQuantity(index, item.quantity + 1)}
+          onClick={() => updateQuantity(item.cartItemID, item.quantity + 1, index)}
           style={{
             padding: '2px 8px',
             backgroundColor: '#ef4444',
@@ -49,9 +56,9 @@ function CartItem({ item, index, updateQuantity }) {
         </button>
       </div>
       <div style={{ textAlign: 'right' }}>
-        <span>Kr {totalPrice.toFixed(2)}</span>
+        <span>${totalPrice.toFixed(2)}</span>
         <div style={{ fontSize: '0.75rem', color: '#666' }}>
-          (incl. tax 10% = Kr {tax.toFixed(2)})
+          (incl. tax 10% = ${tax.toFixed(2)})
         </div>
       </div>
     </div>
