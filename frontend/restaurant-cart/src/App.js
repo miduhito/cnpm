@@ -5,6 +5,7 @@ import Menu from './components/Menu';
 import Dashboard from './components/Dashboard';
 import Product from './components/Product';
 import User from './components/User';
+import Payment from './components/Payment';
 import { FaHome, FaUtensils, FaUsers, FaShoppingCart } from 'react-icons/fa';
 
 function App() {
@@ -30,18 +31,20 @@ function App() {
   }, []);
 
   const addToCart = (item) => {
-    setCartItems([...cartItems, { ...item, cartId: Date.now() }]);
+    setCartItems([...cartItems, item]);
   };
 
-  const completeOrder = () => {
-    if (cartItems.length > 0) {
-      console.log(`Order ${orderId} completed:`, cartItems);
+  const completeOrder = (updatedCart = cartItems) => {
+    if (updatedCart.length > 0) {
+      setCartItems(updatedCart);
+    } else {
       setCartItems([]);
       setOrderId(orderId + 1);
-      alert(`Order ${orderId} has been completed!`);
-    } else {
-      alert('Cart is empty!');
     }
+  };
+
+  const proceedToPayment = () => {
+    setCurrentPage('payment');
   };
 
   const addProduct = (category, product) => {
@@ -66,52 +69,69 @@ function App() {
     setUsers(users.filter((u) => u.id !== userId));
   };
 
+  const handlePayment = (paymentDetails) => {
+    console.log('Payment processed:', { orderId, cartItems, paymentDetails });
+    alert(`Order ${orderId} has been paid successfully!`);
+    setCartItems([]);
+    setOrderId(orderId + 1);
+    setCurrentPage('menu');
+  };
+
   const renderPage = () => {
-  console.log('Current user:', user); // Thêm log để kiểm tra
-  switch (currentPage) {
-    case 'login':
-      return <Login onLogin={(user) => { setUser(user); setCurrentPage('menu'); console.log('Logged in as:', user); }} />;
-    case 'menu':
-      return (
-        <Menu
-          menuItems={menuItems}
-          addToCart={addToCart}
-          cartItems={cartItems}
-          completeOrder={completeOrder}
-          role={user?.role}
-        />
-      );
-    case 'dashboard':
-      return user?.role === 'manager' ? (
-        <Dashboard menuItems={menuItems} cartItems={cartItems} users={users} />
-      ) : (
-        <p style={{ marginLeft: '250px', padding: '30px', color: '#ef4444' }}>Access denied</p>
-      );
-    case 'product':
-      return user?.role === 'manager' ? (
-        <Product
-          categories={Object.keys(menuItems)}
-          menuItems={menuItems}
-          addProduct={addProduct}
-          deleteProduct={deleteProduct}
-        />
-      ) : (
-        <p style={{ marginLeft: '250px', padding: '30px', color: '#ef4444' }}>Access denied</p>
-      );
-    case 'user':
-      return user?.role === 'manager' ? (
-        <User users={users} addUser={addUser} deleteUser={deleteUser} />
-      ) : (
-        <p style={{ marginLeft: '250px', padding: '30px', color: '#ef4444' }}>Access denied</p>
-      );
-    default:
-      return <p style={{ marginLeft: '250px', padding: '30px', color: '#ef4444' }}>Page not found</p>;
-  }
-};
+    switch (currentPage) {
+      case 'login':
+        return <Login onLogin={(user) => { setUser(user); setCurrentPage('menu'); }} />;
+      case 'menu':
+        return (
+          <Menu
+            menuItems={menuItems}
+            addToCart={addToCart}
+            cartItems={cartItems}
+            completeOrder={completeOrder}
+            role={user?.role}
+            proceedToPayment={proceedToPayment}
+          />
+        );
+      case 'dashboard':
+        return user?.role === 'manager' ? (
+          <Dashboard menuItems={menuItems} cartItems={cartItems} users={users} />
+        ) : (
+          <p style={{ marginLeft: '250px', padding: '30px', color: '#ef4444' }}>Access denied</p>
+        );
+      case 'product':
+        return user?.role === 'manager' ? (
+          <Product
+            categories={Object.keys(menuItems)}
+            menuItems={menuItems}
+            addProduct={addProduct}
+            deleteProduct={deleteProduct}
+          />
+        ) : (
+          <p style={{ marginLeft: '250px', padding: '30px', color: '#ef4444' }}>Access denied</p>
+        );
+      case 'user':
+        return user?.role === 'manager' ? (
+          <User users={users} addUser={addUser} deleteUser={deleteUser} />
+        ) : (
+          <p style={{ marginLeft: '250px', padding: '30px', color: '#ef4444' }}>Access denied</p>
+        );
+      case 'payment':
+        return (
+          <Payment
+            cartItems={cartItems}
+            total={cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0) * 1.1} // Bao gồm thuế 10%
+            onPay={handlePayment}
+            onBack={() => setCurrentPage('menu')}
+          />
+        );
+      default:
+        return <p style={{ marginLeft: '250px', padding: '30px', color: '#ef4444' }}>Page not found</p>;
+    }
+  };
 
   return (
     <div className="app-container">
-      {user && (
+      {user && currentPage !== 'payment' && (
         <div className="sidebar">
           <div
             className="sidebar-item"

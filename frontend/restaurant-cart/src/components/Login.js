@@ -9,7 +9,7 @@ function Login({ onLogin }) {
     if (username === 'admin' && password === 'admin') {
       onLogin({ name: 'Admin', role: 'manager' });
     } else if (username === 'user' && password === 'user') {
-      onLogin({ name: 'User', role: 'user' });
+      onLogin({ name: 'User', role: 'staff' });
     } else {
       alert('Invalid credentials');
     }
@@ -22,7 +22,10 @@ function Login({ onLogin }) {
       alignItems: 'center', 
       minHeight: '100vh', 
       backgroundColor: '#f3f3f3', 
-      padding: '20px' 
+      width: '100%', 
+      margin: 0, 
+      padding: 0, 
+      overflow: 'hidden' // Ngăn cuộn trang
     }}>
       <div style={{ 
         backgroundColor: '#ffffff', 
@@ -30,54 +33,50 @@ function Login({ onLogin }) {
         borderRadius: '8px', 
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
         width: '100%', 
-        maxWidth: '400px' 
+        maxWidth: '400px', 
+        textAlign: 'center' 
       }}>
         <h1 style={{ 
           fontSize: '28px', 
           fontWeight: 'bold', 
           color: '#ef4444', 
-          textAlign: 'center', 
           marginBottom: '20px' 
         }}>
           Login
         </h1>
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '15px' }}>
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '16px',
-                outline: 'none',
-              }}
-              onFocus={(e) => e.target.style.outline = '2px solid #ef4444'}
-              onBlur={(e) => e.target.style.outline = 'none'}
-            />
-          </div>
-          <div style={{ marginBottom: '15px' }}>
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '16px',
-                outline: 'none',
-              }}
-              onFocus={(e) => e.target.style.outline = '2px solid #ef4444'}
-              onBlur={(e) => e.target.style.outline = 'none'}
-            />
-          </div>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              fontSize: '16px',
+              outline: 'none',
+            }}
+            onFocus={(e) => e.target.style.outline = '2px solid #ef4444'}
+            onBlur={(e) => e.target.style.outline = 'none'}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              fontSize: '16px',
+              outline: 'none',
+            }}
+            onFocus={(e) => e.target.style.outline = '2px solid #ef4444'}
+            onBlur={(e) => e.target.style.outline = 'none'}
+          />
           <button
             type="submit"
             style={{

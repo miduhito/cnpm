@@ -3,39 +3,49 @@ import { FaShoppingCart } from 'react-icons/fa';
 
 function MenuItem({ item, index, onItemClick, onAddToCart }) {
   const handleItemClick = (e) => {
-    e.stopPropagation(); // Ngăn sự kiện lan truyền
-    console.log('MenuItem clicked to open popup:', item); // Debug để kiểm tra
+    e.stopPropagation();
     if (onItemClick) {
       onItemClick(item);
-    } else {
-      console.error('onItemClick is not defined');
     }
   };
 
   const handleAddToCart = (e) => {
-    e.stopPropagation(); // Ngăn sự kiện click trên MenuItem
-    console.log('Icon clicked to add to cart:', item); // Debug để kiểm tra
+    e.stopPropagation();
     if (onAddToCart) {
-      onAddToCart(item, 1, 'Vegetables'); // Thêm trực tiếp với số lượng 1 và side dish mặc định
-    } else {
-      console.error('onAddToCart is not defined');
+      onAddToCart({ ...item, quantity: 1, sideDish: 'Vegetables' });
     }
   };
 
   return (
-    <div className="menu-item" onClick={handleItemClick} style={{ cursor: 'pointer' }}>
-      <img src={`/images/${item.img}`} alt={item.name} className="img-fluid" />
-      <div className="menu-item-content">
-        <div className="menu-item-text">
-          <h5>
+    <div
+      onClick={handleItemClick}
+      style={{
+        backgroundColor: '#ffffff',
+        padding: '15px',
+        borderRadius: '8px',
+        border: '1px solid #ddd',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+      }}
+    >
+      <img
+        src={item.image}
+        alt={item.name}
+        style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '4px' }}
+      />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h5 style={{ fontSize: '16px', fontWeight: '500', color: '#1F2937' }}>
             {index}. {item.name}
           </h5>
-          <p>Kr {item.price}.00</p>
+          <p style={{ fontSize: '14px', color: '#6B7280' }}>Kr {item.price}.00</p>
         </div>
         <FaShoppingCart
           onClick={handleAddToCart}
-          className="menu-item-cart"
-          style={{ fontSize: '10px', padding: '8px' }}
+          style={{ fontSize: '20px', color: '#ef4444', cursor: 'pointer' }}
         />
       </div>
     </div>
