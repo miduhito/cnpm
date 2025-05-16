@@ -1,313 +1,355 @@
-import React, { useState, useEffect } from 'react';
-import { QRCodeCanvas } from 'qrcode.react';
-import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
-import './Payment.scss';
+import React, { useState } from 'react';
 
-// Hàm định dạng tiền tệ
-const formatter = (value) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-  }).format(value);
-};
+function Product({ categories, menuItems, addProduct, deleteProduct }) {
+  const [newProduct, setNewProduct] = useState({ name: '', price: '', category: categories[0] || '', image: '' });
+  const [editProduct, setEditProduct] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', price: '', category: '', image: '' });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterPrice, setFilterPrice] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
 
-// Component MoMo QR
-function MomoPersonalQR({ amount }) {
-  const phoneNumber = '0932744514';
-  const note = 'Thanh toan do an';
-  const momoLink = `https://nhantien.momo.vn/${phoneNumber}?amount=${amount}&comment=${encodeURIComponent(note)}`;
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewProduct({ ...newProduct, [name]: value });
+  };
 
-  return (
-    <div className="momo-qr">
-      <h2>Chuyển {formatter(amount)} qua MoMo</h2>
-      <QRCodeCanvas value={momoLink} size={256} />
-      <p>Quét mã QR bằng ứng dụng MoMo</p>
-    </div>
-  );
-}
-
-function Payment({ cartItems, onPay, onBack }) {
-  const [businessName, setBusinessName] = useState('');
-  const [note, setNote] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('cash');
-  const [printInvoice, setPrintInvoice] = useState(false);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [error, setError] = useState('');
-  const [orderID] = useState(uuidv4());
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState('');
-
-  // Tính tổng tiền với 10% thuế, đổi từ USD sang VND (x25,000)
-  const totalOrder = cartItems.reduce((sum, item) => {
-    const optionTotal = (item.options || []).reduce((optSum, opt) => optSum + parseFloat(opt.price || 0) * 25000, 0);
-    return sum + (parseFloat(item.price || 0) * 25000 + optionTotal) * item.quantity;
-  }, 0);
-  const totalWithFee = totalOrder;
-
-  // Khởi tạo cartID nếu chưa có
-  useEffect(() => {
-    let cartID = localStorage.getItem('cartID');
-    if (!cartID) {
-      cartID = uuidv4();
-      axios
-        .post('http://localhost:3001/cart', { cartID })
-        .then((response) => {
-          localStorage.setItem('cartID', response.data.cartID);
-        })
-        .catch((err) => {
-          console.error('Lỗi khi khởi tạo giỏ hàng:', err);
-          setError('Không thể khởi tạo giỏ hàng. Vui lòng thử lại.');
-        });
-    } else {
-      axios
-        .get(`http://localhost:3001/cart/${cartID}`)
-        .then((response) => {})
-        .catch((err) => {
-          console.error('Lỗi khi kiểm tra cartID:', err);
-          setError('Giỏ hàng không tồn tại. Đang tạo giỏ hàng mới.');
-          const newCartID = uuidv4();
-          axios
-            .post('http://localhost:3001/cart', { cartID: newCartID })
-            .then((response) => {
-              localStorage.setItem('cartID', response.data.cartID);
-            })
-            .catch((err) => {
-              console.error('Lỗi khi khởi tạo giỏ hàng mới:', err);
-              setError('Không thể khởi tạo giỏ hàng. Vui lòng thử lại.');
-            });
-        });
-    }
-  }, []);
-
-  const handlePay = async () => {
-    if (!businessName) {
-      setError('Vui lòng điền tên khách hàng');
-      return;
-    }
-
-    const cartID = localStorage.getItem('cartID');
-    if (!cartID) {
-      setError('Không tìm thấy giỏ hàng. Vui lòng thử lại.');
-      return;
-    }
-
-    try {
-      await axios.post('http://localhost:3001/orders', {
-        orderID,
-        customerName: businessName,
-        paymentMethod: paymentMethod.toUpperCase(),
-        totalPrice: Number(totalWithFee.toFixed(2)),
-        cartID,
-        note,
-        print: printInvoice,
+  const handleAddProduct = (e) => {
+    e.preventDefault();
+    if (newProduct.name && newProduct.price) {
+      addProduct(newProduct.category, {
+        ...newProduct,
+        id: Date.now().toString(),
+        price: parseFloat(newProduct.price),
       });
-
-      const invoiceData = {
-        ID: uuidv4(),
-        customerName: businessName.trim(),
-        paymentMethod: paymentMethod.toUpperCase(),
-        totalPrice: Number(totalWithFee.toFixed(2)),
-        orderID,
-        createdDate: new Date().toISOString(),
-      };
-
-      await axios.post('http://localhost:3001/invoices', invoiceData);
-
-      localStorage.removeItem('cartID');
-      const response = await axios.post('http://localhost:3001/cart', { cartID: uuidv4() });
-      localStorage.setItem('cartID', response.data.cartID);
-
-      setShowFeedback(true);
-      setError('');
-      onPay({ businessName, note, paymentMethod });
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message;
-      setError(`Lỗi: ${errorMessage}`);
-      console.error('Chi tiết lỗi:', err.response?.data || err);
+      setNewProduct({ name: '', price: '', category: categories[0] || '', image: '' });
     }
   };
 
-  const handleSubmitFeedback = async () => {
-    if (rating === 0) {
-      setError('Vui lòng chọn số sao để đánh giá');
-      return;
-    }
-
-    try {
-      const feedback = {
-        ID: uuidv4(),
-        orderID,
-        rating,
-        comment,
-        createdAt: new Date().toISOString(),
-      };
-      await axios.post('http://localhost:3001/feedbacks', feedback);
-      setError('');
-      setShowFeedback(false);
-      window.location.href = 'http://localhost:3000/';
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message;
-      setError(`Gửi đánh giá thất bại: ${errorMessage}`);
-      console.error('Chi tiết lỗi:', error.response?.data || error);
-    }
+  const handleEditClick = (category, product) => {
+    setEditProduct({ category, product });
+    setEditForm({
+      name: product.name,
+      price: product.price.toString(),
+      category: product.category.name,
+      image: product.image,
+    });
   };
 
-  const handleSkipFeedback = () => {
-    setShowFeedback(false);
-    window.location.href = 'http://localhost:3000/';
+  const handleEditSave = (e) => {
+    e.preventDefault();
+    const updatedProduct = {
+      ...editProduct.product,
+      name: editForm.name,
+      price: parseFloat(editForm.price),
+      image: editForm.image,
+      category: { name: editForm.category, CategoryID: editProduct.product.category.CategoryID },
+    };
+
+    // Xóa sản phẩm cũ và thêm sản phẩm đã cập nhật
+    deleteProduct(editProduct.category, editProduct.product.id);
+    addProduct(editForm.category, updatedProduct);
+
+    setEditProduct(null);
+    setEditForm({ name: '', price: '', category: '', image: '' });
   };
 
-  if (showFeedback) {
-    return (
-      <div className="feedback-container">
-        <div className="feedback-form">
-          <h2>Đánh giá đơn hàng</h2>
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
-          <div className="rating-section">
-            <label>Chọn số sao (1-5):</label>
-            <div className="radio-rating">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <label key={star}>
-                  <input
-                    type="radio"
-                    name="rating"
-                    value={star}
-                    checked={rating === star}
-                    onChange={() => setRating(star)}
-                  />
-                  {star} sao
-                </label>
-              ))}
-            </div>
-          </div>
-          <div className="comment-section">
-            <label>Nhận xét:</label>
-            <textarea
-              rows={4}
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Chia sẻ ý kiến của bạn"
-            />
-          </div>
-          <button
-            onClick={handleSubmitFeedback}
-            className="submit-feedback-btn"
-          >
-            Gửi đánh giá
-          </button>
-          <button
-            onClick={handleSkipFeedback}
-            className="skip-feedback-btn"
-          >
-            Bỏ qua
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const handleEditCancel = () => {
+    setEditProduct(null);
+    setEditForm({ name: '', price: '', category: '', image: '' });
+  };
+
+  const filteredProducts = Object.entries(menuItems).reduce((acc, [category, items]) => {
+    const filtered = items.filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = filterCategory === 'all' || item.category.name === filterCategory;
+      const matchesPrice = filterPrice === 'all' || 
+        (filterPrice === 'low' && item.price < 100) || 
+        (filterPrice === 'high' && item.price >= 100);
+      const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
+      return matchesSearch && matchesCategory && matchesPrice && matchesStatus;
+    });
+    if (filtered.length > 0) acc[category] = filtered;
+    return acc;
+  }, {});
 
   return (
-    <div className="container">
-      <div className="payment-header">
-        <button onClick={onBack} className="back-btn">
-          <span className="back-icon">←</span> Quay lại
-        </button>
-        <div className="breadcrumb">
-          <span className="breadcrumb-item">Thanh toán</span>
-        </div>
+    <div style={{ padding: '30px', backgroundColor: '#f3f3f3', minHeight: '100vh' }}>
+      <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#ef4444', marginBottom: '20px' }}>Product Management</h1>
+
+      <div style={{ marginBottom: '20px', backgroundColor: '#ffffff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            padding: '8px',
+            width: '200px',
+            marginRight: '15px',
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+          }}
+        />
+        <select
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+          style={{ padding: '8px', marginRight: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+        >
+          <option value="all">All Categories</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+        <select
+          value={filterPrice}
+          onChange={(e) => setFilterPrice(e.target.value)}
+          style={{ padding: '8px', marginRight: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
+        >
+          <option value="all">All Prices</option>
+          <option value="low">Under 100 Kr</option>
+          <option value="high">100 Kr and above</option>
+        </select>
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+        >
+          <option value="all">All Status</option>
+          <option value="available">Available</option>
+          <option value="out-of-stock">Out of Stock</option>
+        </select>
       </div>
-      <div>
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
-        <div className="checkout-content">
-          <div className="checkout-form">
-            <div className="checkout_input">
-              <label>
-                Tên khách hàng<span className="required">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Nhập tên khách hàng"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-              />
-            </div>
-            <div className="checkout_input">
-              <label>Ghi chú</label>
-              <textarea
-                rows={5}
-                placeholder="Nhập ghi chú"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-              />
-            </div>
-            <div className="payment-method">
-              <h4>Phương thức thanh toán</h4>
-              {['cash', 'momo'].map((method) => (
-                <div key={method} className="payment-option">
-                  <label className="payment-option-label">
-                    <input
-                      type="radio"
-                      name="payment-method"
-                      value={method}
-                      checked={paymentMethod === method}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                    />
-                    <span>{method === 'cash' ? 'Tiền mặt' : 'MoMo'}</span>
-                  </label>
-                </div>
-              ))}
-              {paymentMethod === 'momo' && <MomoPersonalQR amount={totalWithFee} />}
-            </div>
-            <div className="print-invoice">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={printInvoice}
-                  onChange={() => setPrintInvoice(!printInvoice)}
-                />
-                In hóa đơn
-              </label>
-            </div>
-          </div>
-          <div className="checkout_order">
-            <h3>Đơn hàng</h3>
-            <ul>
-              {cartItems.map((item, index) => (
-                <li key={item.cartItemID || index}>
-                  <span>
-                    {item.name || 'Sản phẩm không xác định'} x {item.quantity}
-                    {item.options?.length > 0 && (
-                      <span> (Tùy chọn: {item.options.map((opt) => opt.name || 'Không xác định').join(', ')})</span>
-                    )}
-                  </span>
-                  <b>{formatter(parseFloat(item.price || 0) * 25000 * item.quantity)}</b>
-                </li>
-              ))}
-              <li className="checkout_order_subtotal">
-                <h3>Tổng cộng</h3>
-                <b>{formatter(totalWithFee)}</b>
-              </li>
-            </ul>
-            <button
-              onClick={handlePay}
-              className="button-submit"
+
+      <div style={{ marginBottom: '20px', backgroundColor: '#ffffff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+        <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#ef4444', marginBottom: '10px' }}>Add New Product</h2>
+        <form onSubmit={handleAddProduct} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <input
+            type="text"
+            name="name"
+            placeholder="Product Name"
+            value={newProduct.name}
+            onChange={handleInputChange}
+            style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+          />
+          <input
+            type="number"
+            name="price"
+            placeholder="Price (Kr)"
+            value={newProduct.price}
+            onChange={handleInputChange}
+            style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+          />
+          <select
+            name="category"
+            value={newProduct.category}
+            onChange={handleInputChange}
+            style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+          >
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+          <input
+            type="text"
+            name="image"
+            placeholder="Image URL"
+            value={newProduct.image}
+            onChange={handleInputChange}
+            style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+          />
+          <button
+            type="submit"
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#ef4444',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+          >
+            Add Product
+          </button>
+        </form>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+        {Object.entries(filteredProducts).map(([category, items]) => (
+          items.map((item) => (
+            <div
+              key={item.id}
+              style={{
+                backgroundColor: '#ffffff',
+                padding: '15px',
+                borderRadius: '8px',
+                border: '1px solid #ddd',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}
             >
-              Thanh toán {formatter(totalWithFee)}
-            </button>
-          </div>
-        </div>
+              <img
+                src={item.image || 'https://placehold.co/200x150?text=No+Image'}
+                alt={item.name}
+                style={{ width: '200px', height: '150px', objectFit: 'cover', borderRadius: '4px', marginBottom: '10px' }}
+              />
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1F2937', marginBottom: '5px' }}>
+                {item.name}
+              </h3>
+              <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#ef4444', marginBottom: '10px' }}>
+                {item.price} Kr
+              </p>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => handleEditClick(category, item)}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#ef4444',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteProduct(category, item.id)}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#ef4444',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
+        ))}
       </div>
+
+      {editProduct && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: '#ffffff',
+          padding: '20px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          zIndex: 1000,
+        }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#ef4444', marginBottom: '10px' }}>
+            Edit Product
+          </h2>
+          <form onSubmit={handleEditSave} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <input
+              type="text"
+              name="name"
+              value={editForm.name}
+              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+            />
+            <input
+              type="number"
+              name="price"
+              value={editForm.price}
+              onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+            />
+            <select
+              name="category"
+              value={editForm.category}
+              onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            <input
+              type="text"
+              name="image"
+              value={editForm.image}
+              onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
+              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+            />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="submit"
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#ef4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+              >
+                Save
+              </button>
+              <button
+                onClick={handleEditCancel}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#6B7280',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#4B5563'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#6B7280'}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      <style>
+        {`
+          @media (max-width: 768px) {
+            div[style*='grid-template-columns'] {
+              grid-template-columns: 1fr;
+            }
+            form {
+              flex-direction: column;
+            }
+            input, select, button {
+              width: 100%;
+              margin-bottom: 10px;
+            }
+            div[style*='position: fixed'] {
+              width: 90%;
+              padding: 15px;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
 
-export default Payment;
+export default Product;

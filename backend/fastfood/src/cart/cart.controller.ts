@@ -1,6 +1,7 @@
-/* eslint-disable prettier/prettier *//* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-import { Controller, Post, Get, Patch, Delete, Body, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Body, Param, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { CartItemService } from './cart-item.service';
 
@@ -12,21 +13,40 @@ export class CartController {
   ) {}
 
   @Post()
-  create(@Body() createCartDto: { cartID: string }) {
-    return this.cartService.create(createCartDto);
+  async create(@Body() createCartDto: { cartID: string }) {
+    try {
+      return await this.cartService.create(createCartDto);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to create cart',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  @Get(':cartID')
-  findOne(@Param('cartID') cartID: string) {
-    return this.cartService.findOne(cartID);
-  }
+  // @Get(':cartID')
+  // findOne(@Param('cartID') cartID: string) {
+  //   return this.cartService.findOne(cartID);
+  // }
+
+  @Get('cart-item/:cartItemID')
+getCartItem(@Param('cartItemID') cartItemID: string) {
+  return this.cartItemService.findOne(cartItemID);
+}
 
   @Post(':cartID/add')
-  addProductToCart(
+  async addProductToCart(
     @Param('cartID') cartID: string,
     @Body() body: { productID: string; quantity: number; optionIDs: string[] },
   ) {
-    return this.cartService.addProductToCart(cartID, body.productID, body.quantity, body.optionIDs);
+    try {
+      return await this.cartService.addProductToCart(cartID, body.productID, body.quantity, body.optionIDs);
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'Failed to add product to cart',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Patch('cart-item/:cartItemID')

@@ -1,5 +1,7 @@
 .app-container {
   display: flex;
+  width: 100%;
+  min-height: 100vh;
 }
 
 .sidebar {
@@ -31,11 +33,18 @@
 }
 
 .main-content {
-  margin-left: 250px;
+  margin-left: 250px; /* Matches sidebar width */
   padding: 30px;
-  width: calc(100% - 250px);
+  width: calc(100% - 250px); /* Takes remaining space */
   background-color: #f3f3f3;
   min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.access-denied {
+  margin-left: 0;
+  padding: 30px;
+  color: #ef4444;
 }
 
 .restaurant-menu-title {
@@ -77,4 +86,30 @@
 
 .category-button:hover {
   transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+  }
+
+  .main-content {
+    margin-left: 200px;
+    width: calc(100% - 200px);
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    padding-top: 10px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
 }

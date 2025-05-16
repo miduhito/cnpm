@@ -21,19 +21,27 @@ import { FeedbackModule } from './feedback/feedback.module';
 import { Feedback } from './feedback/feedback.entity';
 
 @Module({
-  imports: [ProductModule,CartModule,CartItemModule,OrderModule,InvoiceModule,FeedbackModule,TypeOrmModule.forRoot({
+  imports: [
+    ProductModule,
+    CartModule,
+    CartItemModule,
+    OrderModule,
+    InvoiceModule,
+    FeedbackModule,
+    TypeOrmModule.forRoot({
       type: 'mysql',
       host: 'localhost',
       port: 3306,
-      username: 'root',
-      password: 'root',
+      username: 'thanh',
+      password: '12345678',
       database: 'cnpm',
-      entities: [Product,Category,Option,Cart,CartItem,CartItemOption,Order,Invoice,Feedback],
-      synchronize: false,
-    })],
+      entities: [Product, Category, Option, Cart, CartItem, CartItemOption, Order, Invoice, Feedback],
+      synchronize: false, // Sử dụng trong môi trường dev
+    }),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {
-  constructor(private dataSource:DataSource){}
+  constructor(private dataSource: DataSource) {}
 }

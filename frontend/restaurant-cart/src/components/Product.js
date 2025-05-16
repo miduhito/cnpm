@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 
 function Product({ categories, menuItems, addProduct, deleteProduct }) {
   const [newProduct, setNewProduct] = useState({ name: '', price: '', category: categories[0] || '', image: '' });
+  const [editProduct, setEditProduct] = useState(null);
+  const [editForm, setEditForm] = useState({ name: '', price: '', category: '', image: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterPrice, setFilterPrice] = useState('all');
@@ -24,10 +26,43 @@ function Product({ categories, menuItems, addProduct, deleteProduct }) {
     }
   };
 
+  const handleEditClick = (category, product) => {
+    setEditProduct({ category, product });
+    setEditForm({
+      name: product.name,
+      price: product.price.toString(),
+      category: product.category.name,
+      image: product.image,
+    });
+  };
+
+  const handleEditSave = (e) => {
+    e.preventDefault();
+    const updatedProduct = {
+      ...editProduct.product,
+      name: editForm.name,
+      price: parseFloat(editForm.price),
+      image: editForm.image,
+      category: { name: editForm.category, CategoryID: editProduct.product.category.CategoryID },
+    };
+
+    // Xóa sản phẩm cũ và thêm sản phẩm đã cập nhật
+    deleteProduct(editProduct.category, editProduct.product.id);
+    addProduct(editForm.category, updatedProduct);
+
+    setEditProduct(null);
+    setEditForm({ name: '', price: '', category: '', image: '' });
+  };
+
+  const handleEditCancel = () => {
+    setEditProduct(null);
+    setEditForm({ name: '', price: '', category: '', image: '' });
+  };
+
   const filteredProducts = Object.entries(menuItems).reduce((acc, [category, items]) => {
     const filtered = items.filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = filterCategory === 'all' || item.category === filterCategory;
+      const matchesCategory = filterCategory === 'all' || item.category.name === filterCategory;
       const matchesPrice = filterPrice === 'all' || 
         (filterPrice === 'low' && item.price < 100) || 
         (filterPrice === 'high' && item.price >= 100);
@@ -39,10 +74,9 @@ function Product({ categories, menuItems, addProduct, deleteProduct }) {
   }, {});
 
   return (
-    <div style={{ marginLeft: '250px', padding: '30px', backgroundColor: '#f3f3f3', minHeight: '100vh' }}>
+    <div style={{ padding: '30px', backgroundColor: '#f3f3f3', minHeight: '100vh' }}>
       <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#ef4444', marginBottom: '20px' }}>Product Management</h1>
 
-      {/* Thanh điều hướng */}
       <div style={{ marginBottom: '20px', backgroundColor: '#ffffff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
         <input
           type="text"
@@ -87,7 +121,6 @@ function Product({ categories, menuItems, addProduct, deleteProduct }) {
         </select>
       </div>
 
-      {/* Form thêm sản phẩm */}
       <div style={{ marginBottom: '20px', backgroundColor: '#ffffff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
         <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#ef4444', marginBottom: '10px' }}>Add New Product</h2>
         <form onSubmit={handleAddProduct} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -144,7 +177,6 @@ function Product({ categories, menuItems, addProduct, deleteProduct }) {
         </form>
       </div>
 
-      {/* Danh sách sản phẩm */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
         {Object.entries(filteredProducts).map(([category, items]) => (
           items.map((item) => (
@@ -172,10 +204,97 @@ function Product({ categories, menuItems, addProduct, deleteProduct }) {
               <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#ef4444', marginBottom: '10px' }}>
                 {item.price} Kr
               </p>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => handleEditClick(category, item)}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#ef4444',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteProduct(category, item.id)}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#ef4444',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
+        ))}
+      </div>
+
+      {editProduct && (
+        <div style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          backgroundColor: '#ffffff',
+          padding: '20px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          zIndex: 1000,
+        }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#ef4444', marginBottom: '10px' }}>
+            Edit Product
+          </h2>
+          <form onSubmit={handleEditSave} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <input
+              type="text"
+              name="name"
+              value={editForm.name}
+              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+            />
+            <input
+              type="number"
+              name="price"
+              value={editForm.price}
+              onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+            />
+            <select
+              name="category"
+              value={editForm.category}
+              onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            <input
+              type="text"
+              name="image"
+              value={editForm.image}
+              onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
+              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
+            />
+            <div style={{ display: 'flex', gap: '10px' }}>
               <button
-                onClick={() => deleteProduct(category, item.id)}
+                type="submit"
                 style={{
-                  padding: '6px 12px',
+                  padding: '8px 16px',
                   backgroundColor: '#ef4444',
                   color: '#ffffff',
                   border: 'none',
@@ -186,21 +305,32 @@ function Product({ categories, menuItems, addProduct, deleteProduct }) {
                 onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
                 onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
               >
-                Delete
+                Save
+              </button>
+              <button
+                onClick={handleEditCancel}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#6B7280',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#4B5563'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#6B7280'}
+              >
+                Cancel
               </button>
             </div>
-          ))
-        ))}
-      </div>
+          </form>
+        </div>
+      )}
 
-      {/* Responsive design */}
       <style>
         {`
           @media (max-width: 768px) {
-            div[style*='margin-left: 250px'] {
-              margin-left: 0;
-              width: 100%;
-            }
             div[style*='grid-template-columns'] {
               grid-template-columns: 1fr;
             }
@@ -210,6 +340,10 @@ function Product({ categories, menuItems, addProduct, deleteProduct }) {
             input, select, button {
               width: 100%;
               margin-bottom: 10px;
+            }
+            div[style*='position: fixed'] {
+              width: 90%;
+              padding: 15px;
             }
           }
         `}

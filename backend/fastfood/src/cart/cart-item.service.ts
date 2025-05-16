@@ -37,4 +37,15 @@ export class CartItemService {
       throw new NotFoundException(`Cart item with ID ${cartItemID} not found`);
     }
   }
+
+  async findOne(cartItemID: string | number): Promise<CartItem> {
+  const cartItem = await this.cartItemRepository.findOne({
+    where: { cartItemID: Number(cartItemID) },
+    relations: ['cart', 'product'], // nếu cần lấy thêm quan hệ
+  });
+  if (!cartItem) {
+    throw new NotFoundException(`Cart item with ID ${cartItemID} not found`);
+  }
+  return cartItem;
+}
 }

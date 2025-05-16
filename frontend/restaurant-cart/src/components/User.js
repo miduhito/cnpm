@@ -27,9 +27,7 @@ function User({ users, addUser, deleteUser }) {
 
   const handleEditSave = (e) => {
     e.preventDefault();
-    // Logic cập nhật user (giả lập)
     const updatedUsers = users.map(u => u.id === editUser.id ? { ...u, ...editForm } : u);
-    // Thay thế bằng API call nếu cần
     console.log('Updated users:', updatedUsers);
     setEditUser(null);
     setEditForm({ name: '', email: '' });
@@ -37,7 +35,6 @@ function User({ users, addUser, deleteUser }) {
 
   const handleChangePassword = (e) => {
     e.preventDefault();
-    // Logic đổi mật khẩu (giả lập)
     if (newPassword) {
       console.log(`Changed password for ${editUser?.name} to: ${newPassword}`);
       setShowChangePassword(false);
@@ -46,10 +43,9 @@ function User({ users, addUser, deleteUser }) {
   };
 
   return (
-    <div style={{ marginLeft: '250px', padding: '30px', backgroundColor: '#f3f3f3', minHeight: '100vh' }}>
+    <div style={{ padding: '30px', backgroundColor: '#f3f3f3', minHeight: '100vh' }}>
       <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#ef4444', marginBottom: '20px' }}>User Management</h1>
 
-      {/* Form thêm người dùng */}
       <div style={{ marginBottom: '20px', backgroundColor: '#ffffff', padding: '15px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}>
         <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#ef4444', marginBottom: '10px' }}>Add New User</h2>
         <form onSubmit={handleAddUser} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -88,7 +84,6 @@ function User({ users, addUser, deleteUser }) {
         </form>
       </div>
 
-      {/* Danh sách người dùng */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
         {users.map((user) => (
           <div
@@ -167,7 +162,6 @@ function User({ users, addUser, deleteUser }) {
         ))}
       </div>
 
-      {/* Form chỉnh sửa */}
       {editUser && !showChangePassword && (
         <div style={{
           position: 'fixed',
@@ -236,7 +230,6 @@ function User({ users, addUser, deleteUser }) {
         </div>
       )}
 
-      {/* Form đổi mật khẩu */}
       {editUser && showChangePassword && (
         <div style={{
           position: 'fixed',
@@ -298,14 +291,9 @@ function User({ users, addUser, deleteUser }) {
         </div>
       )}
 
-      {/* Responsive design */}
       <style>
         {`
           @media (max-width: 768px) {
-            div[style*='margin-left: 250px'] {
-              margin-left: 0;
-              width: 100%;
-            }
             div[style*='grid-template-columns'] {
               grid-template-columns: 1fr;
             }
