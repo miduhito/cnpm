@@ -39,7 +39,14 @@ function User({ users, addUser, deleteUser }) {
       console.log(`Changed password for ${editUser?.name} to: ${newPassword}`);
       setShowChangePassword(false);
       setNewPassword('');
+      setEditUser(null); // Đóng form hoàn toàn sau khi lưu
     }
+  };
+
+  const handleCancelChangePassword = () => {
+    setShowChangePassword(false);
+    setNewPassword('');
+    setEditUser(null); // Đóng form hoàn toàn khi hủy
   };
 
   return (
@@ -271,7 +278,7 @@ function User({ users, addUser, deleteUser }) {
                 Save
               </button>
               <button
-                onClick={() => { setShowChangePassword(false); setNewPassword(''); }}
+                onClick={handleCancelChangePassword}
                 style={{
                   padding: '8px 16px',
                   backgroundColor: '#6B7280',

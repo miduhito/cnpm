@@ -42,7 +42,7 @@ function Menu({ menuItems, addToCart, cartItems, completeOrder, role, proceedToP
 
   const allItems = Object.values(menuItems || {}).flat();
   const filteredItems = searchTerm
-    ? allItems.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    ? { "Search Results": allItems.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase())) }
     : selectedCategory
       ? { [selectedCategory]: menuItems[selectedCategory] }
       : menuItems || {};
@@ -53,19 +53,23 @@ function Menu({ menuItems, addToCart, cartItems, completeOrder, role, proceedToP
     if (term) {
       const filteredSuggestions = allItems.filter(item => item.name.toLowerCase().includes(term.toLowerCase())).slice(0, 5);
       setSuggestions(filteredSuggestions);
-    } else setSuggestions([]);
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (!searchTerm) return;
-    setSelectedCategory(null);
+      setSelectedCategory(null); // Reset category khi tìm kiếm
+    } else {
+      setSuggestions([]);
+      setSelectedCategory(null); // Reset khi xóa từ khóa
+    }
   };
 
   const handleSuggestionClick = (item) => {
     setSearchTerm(item.name);
     setSuggestions([]);
-    setSelectedCategory(null);
+    setSelectedCategory(null); // Đảm bảo lọc theo từ khóa
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (!searchTerm) return;
+    setSelectedCategory(null); // Xác nhận tìm kiếm, giữ filteredItems hiện tại
   };
 
   return (
@@ -98,6 +102,11 @@ function Menu({ menuItems, addToCart, cartItems, completeOrder, role, proceedToP
                   {item.name} (Kr {item.price}.00)
                 </div>
               ))}
+            </div>
+          )}
+          {searchTerm && Object.values(filteredItems)[0]?.length === 0 && (
+            <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: '#ffffff', border: '1px solid #ddd', borderRadius: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', zIndex: 10, padding: '8px 12px', color: '#6B7280' }}>
+              No products found
             </div>
           )}
         </div>

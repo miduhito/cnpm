@@ -1,355 +1,234 @@
-import React, { useState } from 'react';
+import { memo, useState } from "react";
+import { Breadcrumb, Button, Row, Col } from "react-bootstrap";
+import "./Payment.scss";
 
-function Product({ categories, menuItems, addProduct, deleteProduct }) {
-  const [newProduct, setNewProduct] = useState({ name: '', price: '', category: categories[0] || '', image: '' });
-  const [editProduct, setEditProduct] = useState(null);
-  const [editForm, setEditForm] = useState({ name: '', price: '', category: '', image: '' });
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [filterPrice, setFilterPrice] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
+const formatter = (value) => {
+  return `Kr ${value.toFixed(2)}`; // Định dạng thủ công: "Kr 150.00"
+};
+
+const Payment = ({ cartItems, total, onPay, onBack }) => {
+  const [formData, setFormData] = useState({
+    businessName: "",
+    address: "",
+    phoneNumber: "",
+    notes: "",
+    paymentMethod: "CASH",
+  });
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewProduct({ ...newProduct, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    if (newProduct.name && newProduct.price) {
-      addProduct(newProduct.category, {
-        ...newProduct,
-        id: Date.now().toString(),
-        price: parseFloat(newProduct.price),
+  const handlePaymentMethodChange = (e) => {
+    setFormData((prev) => ({ ...prev, paymentMethod: e.target.value }));
+  };
+
+  const handlePay = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    // Kiểm tra nếu người dùng nhập ít nhất một trường thì phải nhập đầy đủ
+    const hasSomeInput =
+      formData.businessName.trim() !== "" ||
+      formData.address.trim() !== "" ||
+      formData.phoneNumber.trim() !== "";
+    const hasAllInputs =
+      formData.businessName.trim() !== "" &&
+      formData.address.trim() !== "" &&
+      formData.phoneNumber.trim() !== "";
+
+    if (hasSomeInput && !hasAllInputs) {
+      setError("Vui lòng điền đầy đủ thông tin bắt buộc hoặc để trống tất cả.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const orderRequest = {
+        customerId: 1,
+        items: cartItems.map((item) => ({
+          productId: parseInt(item.id),
+          name: item.name,
+          price: parseFloat(item.unitPrice),
+          quantity: item.quantity,
+        })),
+        address: formData.address || "Not provided",
+        phoneNumber: formData.phoneNumber || "Not provided",
+        paymentMethod: formData.paymentMethod,
+        notes: formData.notes,
+      };
+
+      const response = await fetch("http://localhost:3001/api/orders/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderRequest),
       });
-      setNewProduct({ name: '', price: '', category: categories[0] || '', image: '' });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Thanh toán thất bại");
+      }
+
+      const result = await response.json();
+      onPay({
+        orderId: result.data.id,
+        cartItems,
+        paymentDetails: {
+          businessName: formData.businessName || "Not provided",
+          address: formData.address || "Not provided",
+          phoneNumber: formData.phoneNumber || "Not provided",
+          paymentMethod: formData.paymentMethod,
+          notes: formData.notes,
+        },
+      });
+
+      alert("Thanh toán thành công!");
+    } catch (err) {
+      setError("Lỗi: " + err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleEditClick = (category, product) => {
-    setEditProduct({ category, product });
-    setEditForm({
-      name: product.name,
-      price: product.price.toString(),
-      category: product.category.name,
-      image: product.image,
-    });
-  };
-
-  const handleEditSave = (e) => {
-    e.preventDefault();
-    const updatedProduct = {
-      ...editProduct.product,
-      name: editForm.name,
-      price: parseFloat(editForm.price),
-      image: editForm.image,
-      category: { name: editForm.category, CategoryID: editProduct.product.category.CategoryID },
-    };
-
-    // Xóa sản phẩm cũ và thêm sản phẩm đã cập nhật
-    deleteProduct(editProduct.category, editProduct.product.id);
-    addProduct(editForm.category, updatedProduct);
-
-    setEditProduct(null);
-    setEditForm({ name: '', price: '', category: '', image: '' });
-  };
-
-  const handleEditCancel = () => {
-    setEditProduct(null);
-    setEditForm({ name: '', price: '', category: '', image: '' });
-  };
-
-  const filteredProducts = Object.entries(menuItems).reduce((acc, [category, items]) => {
-    const filtered = items.filter((item) => {
-      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = filterCategory === 'all' || item.category.name === filterCategory;
-      const matchesPrice = filterPrice === 'all' || 
-        (filterPrice === 'low' && item.price < 100) || 
-        (filterPrice === 'high' && item.price >= 100);
-      const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
-      return matchesSearch && matchesCategory && matchesPrice && matchesStatus;
-    });
-    if (filtered.length > 0) acc[category] = filtered;
-    return acc;
-  }, {});
-
   return (
-    <div style={{ padding: '30px', backgroundColor: '#f3f3f3', minHeight: '100vh' }}>
-      <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#ef4444', marginBottom: '20px' }}>Product Management</h1>
-
-      <div style={{ marginBottom: '20px', backgroundColor: '#ffffff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <input
-          type="text"
-          placeholder="Search products..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            padding: '8px',
-            width: '200px',
-            marginRight: '15px',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-          }}
-        />
-        <select
-          value={filterCategory}
-          onChange={(e) => setFilterCategory(e.target.value)}
-          style={{ padding: '8px', marginRight: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
-        >
-          <option value="all">All Categories</option>
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
-        <select
-          value={filterPrice}
-          onChange={(e) => setFilterPrice(e.target.value)}
-          style={{ padding: '8px', marginRight: '15px', border: '1px solid #ddd', borderRadius: '4px' }}
-        >
-          <option value="all">All Prices</option>
-          <option value="low">Under 100 Kr</option>
-          <option value="high">100 Kr and above</option>
-        </select>
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-        >
-          <option value="all">All Status</option>
-          <option value="available">Available</option>
-          <option value="out-of-stock">Out of Stock</option>
-        </select>
+    <div className="payment-container">
+      <div className="payment-header">
+        <Button variant="link" className="back-btn" onClick={onBack}>
+          <span className="back-icon">←</span> Back
+        </Button>
+        <Breadcrumb>
+          <Breadcrumb.Item active>Payment</Breadcrumb.Item>
+        </Breadcrumb>
       </div>
-
-      <div style={{ marginBottom: '20px', backgroundColor: '#ffffff', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#ef4444', marginBottom: '10px' }}>Add New Product</h2>
-        <form onSubmit={handleAddProduct} style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            name="name"
-            placeholder="Product Name"
-            value={newProduct.name}
-            onChange={handleInputChange}
-            style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
-          />
-          <input
-            type="number"
-            name="price"
-            placeholder="Price (Kr)"
-            value={newProduct.price}
-            onChange={handleInputChange}
-            style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
-          />
-          <select
-            name="category"
-            value={newProduct.category}
-            onChange={handleInputChange}
-            style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-          <input
-            type="text"
-            name="image"
-            placeholder="Image URL"
-            value={newProduct.image}
-            onChange={handleInputChange}
-            style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
-          />
-          <button
-            type="submit"
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#ef4444',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
-          >
-            Add Product
-          </button>
-        </form>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
-        {Object.entries(filteredProducts).map(([category, items]) => (
-          items.map((item) => (
-            <div
-              key={item.id}
-              style={{
-                backgroundColor: '#ffffff',
-                padding: '15px',
-                borderRadius: '8px',
-                border: '1px solid #ddd',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              <img
-                src={item.image || 'https://placehold.co/200x150?text=No+Image'}
-                alt={item.name}
-                style={{ width: '200px', height: '150px', objectFit: 'cover', borderRadius: '4px', marginBottom: '10px' }}
-              />
-              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1F2937', marginBottom: '5px' }}>
-                {item.name}
-              </h3>
-              <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#ef4444', marginBottom: '10px' }}>
-                {item.price} Kr
-              </p>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  onClick={() => handleEditClick(category, item)}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#ef4444',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => deleteProduct(category, item.id)}
-                  style={{
-                    padding: '6px 12px',
-                    backgroundColor: '#ef4444',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
-                >
-                  Delete
-                </button>
+      <div className="payment-content">
+        <Row>
+          <Col lg={6} md={12} sm={12} xs={12}>
+            <div className="checkout-form">
+              <h2 className="section-title">Billing Information (Optional)</h2>
+              <div className="checkout_input">
+                <label>
+                  Business Name{formData.businessName && <span className="required">*</span>}
+                </label>
+                <input
+                  type="text"
+                  name="businessName"
+                  placeholder="Enter business name"
+                  value={formData.businessName}
+                  onChange={handleInputChange}
+                />
               </div>
+              <div className="checkout_input">
+                <label>
+                  Address{formData.address && <span className="required">*</span>}
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  placeholder="Enter address"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="checkout_input_group">
+                <div className="checkout_input">
+                  <label>
+                    Phone Number{formData.phoneNumber && <span className="required">*</span>}
+                  </label>
+                  <input
+                    type="text"
+                    name="phoneNumber"
+                    placeholder="Enter phone number"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="checkout_input">
+                  <label>Note</label>
+                  <textarea
+                    rows={5}
+                    name="notes"
+                    placeholder="Enter notes (optional)"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                  ></textarea>
+                </div>
+              </div>
+              <div className="payment-method">
+                <h4>Payment Method</h4>
+                <div className="payment-option">
+                  <label className="payment-option-label">
+                    <input
+                      type="radio"
+                      name="payment-method"
+                      value="CASH"
+                      checked={formData.paymentMethod === "CASH"}
+                      onChange={handlePaymentMethodChange}
+                    />
+                    <span>Cash</span>
+                  </label>
+                </div>
+                <div className="payment-option">
+                  <label className="payment-option-label">
+                    <input
+                      type="radio"
+                      name="payment-method"
+                      value="BANK_TRANSFER"
+                      checked={formData.paymentMethod === "BANK_TRANSFER"}
+                      onChange={handlePaymentMethodChange}
+                    />
+                    <span>Bank Transfer</span>
+                  </label>
+                </div>
+                {formData.paymentMethod === "BANK_TRANSFER" && (
+                  <div className="momo-qr">
+                    <h2>Scan to Pay</h2>
+                    <img src="/images/qr.jpg" alt="QR Code" className="qr-code-img" />
+                    <p>Please scan the QR code using your mobile banking app to complete the payment.</p>
+                  </div>
+                )}
+              </div>
+              {error && <p className="error-message">{error}</p>}
+              {isLoading && <p className="loading-message">Đang xử lý thanh toán...</p>}
             </div>
-          ))
-        ))}
+          </Col>
+          <Col lg={6} md={12} sm={12} xs={12}>
+            <div className="checkout_order">
+              <h3>Order Summary</h3>
+              <ul>
+                {cartItems.map((item, index) => (
+                  <li key={index}>
+                    <span>
+                      {item.name} x {item.quantity}
+                    </span>
+                    <b>{formatter(item.unitPrice * item.quantity)}</b>
+                  </li>
+                ))}
+                <li>
+                  <span>Discount</span>
+                  <b>{formatter(0)}</b>
+                </li>
+                <li className="checkout_order_subtotal">
+                  <h3>Total</h3>
+                  <b>{formatter(total)}</b>
+                </li>
+              </ul>
+              <button
+                type="button"
+                className="button-submit"
+                onClick={handlePay}
+                disabled={isLoading}
+              >
+                Pay Now {formatter(total)}
+              </button>
+            </div>
+          </Col>
+        </Row>
       </div>
-
-      {editProduct && (
-        <div style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          backgroundColor: '#ffffff',
-          padding: '20px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          zIndex: 1000,
-        }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#ef4444', marginBottom: '10px' }}>
-            Edit Product
-          </h2>
-          <form onSubmit={handleEditSave} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <input
-              type="text"
-              name="name"
-              value={editForm.name}
-              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
-            />
-            <input
-              type="number"
-              name="price"
-              value={editForm.price}
-              onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
-              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
-            />
-            <select
-              name="category"
-              value={editForm.category}
-              onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-            <input
-              type="text"
-              name="image"
-              value={editForm.image}
-              onChange={(e) => setEditForm({ ...editForm, image: e.target.value })}
-              style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
-            />
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                type="submit"
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#ef4444',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s',
-                }}
-                onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
-                onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
-              >
-                Save
-              </button>
-              <button
-                onClick={handleEditCancel}
-                style={{
-                  padding: '8px 16px',
-                  backgroundColor: '#6B7280',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s',
-                }}
-                onMouseOver={(e) => e.target.style.backgroundColor = '#4B5563'}
-                onMouseOut={(e) => e.target.style.backgroundColor = '#6B7280'}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      <style>
-        {`
-          @media (max-width: 768px) {
-            div[style*='grid-template-columns'] {
-              grid-template-columns: 1fr;
-            }
-            form {
-              flex-direction: column;
-            }
-            input, select, button {
-              width: 100%;
-              margin-bottom: 10px;
-            }
-            div[style*='position: fixed'] {
-              width: 90%;
-              padding: 15px;
-            }
-          }
-        `}
-      </style>
     </div>
   );
-}
+};
 
-export default Product;
+export default memo(Payment);

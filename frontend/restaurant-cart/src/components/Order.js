@@ -4,7 +4,7 @@ function Order({ cartItems, deleteOrder, setCart }) {
   const handleStatusChange = (index, newStatus) => {
     const updatedCart = [...cartItems];
     updatedCart[index].status = newStatus;
-    setCart(updatedCart); // Sử dụng setCart để cập nhật state
+    setCart(updatedCart);
   };
 
   return (

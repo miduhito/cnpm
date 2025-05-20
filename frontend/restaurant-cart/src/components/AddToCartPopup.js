@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaShoppingCart, FaTimes } from 'react-icons/fa';
+import { FaTimes } from 'react-icons/fa';
 
 function AddToCartPopup({ item, onClose, onAddToCart, proceedToPayment }) {
   const [quantity, setQuantity] = useState(1);
@@ -29,13 +29,7 @@ function AddToCartPopup({ item, onClose, onAddToCart, proceedToPayment }) {
 
   const handleAddToCart = () => {
     onAddToCart(item, quantity, selectedOptions);
-    alert('Đã thêm vào giỏ hàng!');
     onClose();
-  };
-
-  const handleProceedToPayment = () => {
-    onClose();
-    proceedToPayment(); // Sử dụng prop proceedToPayment thay vì window.location.href
   };
 
   return (
@@ -45,21 +39,23 @@ function AddToCartPopup({ item, onClose, onAddToCart, proceedToPayment }) {
       left: '50%',
       transform: 'translate(-50%, -50%)',
       backgroundColor: '#ffffff',
-      padding: '20px',
+      padding: '15px',
       borderRadius: '8px',
       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
       zIndex: 1000,
       width: '90%',
       maxWidth: '400px',
+      display: 'flex',
+      flexDirection: 'column',
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-        <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444' }}>ADD TO CART</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 'bold', color: '#ef4444' }}>ADD TO CART</h2>
         <button
           onClick={onClose}
           style={{
             background: 'none',
             border: 'none',
-            fontSize: '20px',
+            fontSize: '18px',
             cursor: 'pointer',
             color: '#000',
           }}
@@ -67,135 +63,120 @@ function AddToCartPopup({ item, onClose, onAddToCart, proceedToPayment }) {
           <FaTimes />
         </button>
       </div>
-      <div style={{ marginBottom: '15px' }}>
-        <img
-          src={item.image || 'https://placehold.co/200x150?text=No+Image'}
-          alt={item.name}
-          style={{ width: '100%', height: 'auto', borderRadius: '4px', marginBottom: '10px' }}
-        />
-        <p style={{ color: '#6B7280', marginBottom: '5px' }}>SKU: {item.id || 'prod2'}</p>
-        <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '5px' }}>{item.name || 'Beef Burger'}</h3>
-        <p style={{ color: '#6B7280', marginBottom: '10px' }}>{item.description || 'Juicy beef patty'}</p>
-        <p style={{ fontSize: '16px', fontWeight: 'bold', color: '#ef4444', marginBottom: '10px' }}>
-          Unit Price: ${item.price || '6.99'}
-        </p>
+      <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', marginBottom: '10px' }}>
+        <div style={{ flex: '1', minWidth: '120px' }}>
+          <img
+            src={item.image || 'https://placehold.co/200x150?text=No+Image'}
+            alt={item.name}
+            style={{ width: '100%', height: 'auto', borderRadius: '4px' }}
+          />
+        </div>
+        <div style={{ flex: '2' }}>
+          <p style={{ color: '#6B7280', marginBottom: '4px', fontSize: '14px' }}>SKU: {item.id || 'prod2'}</p>
+          <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '4px' }}>{item.name || 'Cola'}</h3>
+          <p style={{ color: '#6B7280', marginBottom: '8px', fontSize: '14px' }}>
+            Freshly made with premium ingredients
+          </p>
+          <p style={{ fontSize: '15px', fontWeight: 'bold', color: '#ef4444', marginBottom: '8px' }}>
+            Unit Price: Kr {item.price || '1.99'}
+          </p>
+        </div>
       </div>
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ fontWeight: '500', marginBottom: '5px', display: 'block', color: '#1F2937' }}>Quantity</label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ marginBottom: '10px' }}>
+        <label style={{ fontWeight: '500', marginBottom: '4px', display: 'block', color: '#1F2937', fontSize: '14px' }}>
+          QUANTITY
+        </label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             onClick={() => handleQuantityChange(-1)}
             style={{
-              padding: '5px 10px',
-              backgroundColor: '#ef4444',
-              color: '#ffffff',
+              padding: '4px 8px',
+              backgroundColor: '#e5e7eb',
+              color: '#000',
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer',
+              fontSize: '14px',
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
           >
             -
           </button>
-          <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#ef4444' }}>{quantity}</span>
+          <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#000' }}>{quantity}</span>
           <button
             onClick={() => handleQuantityChange(1)}
             style={{
-              padding: '5px 10px',
-              backgroundColor: '#ef4444',
-              color: '#ffffff',
+              padding: '4px 8px',
+              backgroundColor: '#e5e7eb',
+              color: '#000',
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer',
+              fontSize: '14px',
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
           >
             +
           </button>
         </div>
       </div>
-      <div style={{ marginBottom: '15px' }}>
-        <label style={{ fontWeight: '500', marginBottom: '5px', display: 'block', color: '#1F2937' }}>Options</label>
-        <p style={{ color: '#6B7280', marginBottom: '5px' }}>Select additional options</p>
+      <div style={{ marginBottom: '10px' }}>
+        <label style={{ fontWeight: '500', marginBottom: '4px', display: 'block', color: '#1F2937', fontSize: '14px' }}>
+          SIDE DISHES (*)
+        </label>
+        <p style={{ color: '#6B7280', marginBottom: '4px', fontSize: '12px' }}>
+          Please select one of the properties below
+        </p>
         {item.options && item.options.length > 0 ? (
           item.options.map((option, index) => (
-            <label key={index} style={{ display: 'block', marginBottom: '5px' }}>
+            <label key={index} style={{ display: 'block', marginBottom: '4px' }}>
               <input
                 type="checkbox"
                 value={JSON.stringify(option)}
                 onChange={handleOptionChange}
-                style={{ marginRight: '5px' }}
+                style={{ marginRight: '5px', accentColor: '#ef4444' }}
               />
-              {option.name || 'Large Size'} (+${option.price || '2.50'})
+              <span style={{ fontSize: '14px' }}>
+                {option.name || 'Extra Ice'} (Selected quantity {selectedOptions.some(opt => opt.name === option.name) ? '1' : '0'})
+              </span>
             </label>
           ))
         ) : (
-          <p style={{ color: '#6B7280' }}>No options available</p>
+          <p style={{ color: '#6B7280', fontSize: '14px' }}>No side dishes available</p>
         )}
       </div>
-      <div style={{ marginBottom: '20px' }}>
-        <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444', marginBottom: '10px' }}>
-          ${totalPrice.toFixed(2)}
-        </p>
-      </div>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button
-          onClick={handleProceedToPayment}
-          style={{
-            flex: 2,
-            padding: '12px',
-            backgroundColor: '#ef4444',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            transition: 'background-color 0.3s',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
-        >
-          ${totalPrice.toFixed(2)}
-        </button>
-        <button
-          onClick={handleAddToCart}
-          style={{
-            flex: 1,
-            padding: '12px',
-            backgroundColor: '#28a745',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '16px',
-            cursor: 'pointer',
-            transition: 'background-color 0.3s',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '5px',
-          }}
-          onMouseOver={(e) => e.target.style.backgroundColor = '#218838'}
-          onMouseOut={(e) => e.target.style.backgroundColor = '#28a745'}
-        >
-          <FaShoppingCart /> Add to Cart
-        </button>
-      </div>
+      <button
+        onClick={handleAddToCart}
+        style={{
+          width: '100%',
+          padding: '10px',
+          backgroundColor: '#ef4444',
+          color: '#ffffff',
+          border: 'none',
+          borderRadius: '6px',
+          fontSize: '15px',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          transition: 'background-color 0.3s',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '5px',
+        }}
+        onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
+        onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
+      >
+        <span>Kr {totalPrice.toFixed(2)}</span>
+      </button>
       <style>
         {`
           @media (max-width: 480px) {
-            div[style*='display: flex'][style*='gap: 10px'] {
+            div[style*='maxWidth: 400px'] {
+              width: 95%;
+            }
+            div[style*='flexDirection: row'] {
               flex-direction: column;
             }
-            button[style*='flex: 2'], button[style*='flex: 1'] {
-              flex: 100%;
-              width: 100%;
-              margin-bottom: 10px;
+            div[style*='flex: 1'] {
+              min-width: 100%;
             }
           }
         `}
