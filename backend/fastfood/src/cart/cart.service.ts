@@ -1,3 +1,5 @@
+/* eslint-disable prettier/prettier *//* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import { Injectable, NotFoundException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';

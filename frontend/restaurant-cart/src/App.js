@@ -146,7 +146,7 @@ function App() {
   };
 
   const handlePayment = (paymentDetails) => {
-    console.log('Payment processed:', { orderId, cartItems, paymentDetails });
+    console.log('Payment processed:', { orderId, cartItems, paymentDetails,cartID });
     setCartItems([]);
     setOrderId(orderId + 1);
   };
@@ -158,7 +158,7 @@ function App() {
       case 'dashboard': return user?.role === 'manager' ? <Dashboard menuItems={menuItems} cartItems={cartItems} users={users} /> : <p className="access-denied">Access denied</p>;
       case 'product': return user?.role === 'manager' ? <Product categories={Object.keys(menuItems)} menuItems={menuItems} addProduct={addProduct} deleteProduct={deleteProduct} /> : <p className="access-denied">Access denied</p>;
       case 'user': return user?.role === 'manager' ? <User users={users} addUser={addUser} deleteUser={deleteUser} /> : <p className="access-denied">Access denied</p>;
-      case 'payment': return <Payment cartItems={cartItems} total={cartItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) * 1.1} onPay={handlePayment} onBack={() => setCurrentPage('menu')} />;
+      case 'payment': return <Payment cartItems={cartItems} total={cartItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) * 1.1} onPay={handlePayment} onBack={() => setCurrentPage('menu')} cart={cartID} />;
       default: return <p className="access-denied">Page not found</p>;
     }
   };

@@ -3,23 +3,27 @@ import { Breadcrumb, Button, Row, Col } from "react-bootstrap";
 import "./Payment.scss";
 
 const formatter = (value) => {
-  return `Kr ${value.toFixed(2)}`; // Định dạng thủ công: "Kr 150.00"
+  return `Kr ${value.toFixed(2)}`;
 };
 
-const Payment = ({ cartItems, total, onPay, onBack }) => {
+const Payment = ({ cartItems, total, onPay, onBack,cart }) => {
   const [formData, setFormData] = useState({
-    businessName: "",
+    customerName: "",
     address: "",
     phoneNumber: "",
-    notes: "",
+    note: "",
     paymentMethod: "CASH",
+    print: false,
   });
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handlePaymentMethodChange = (e) => {
@@ -30,13 +34,12 @@ const Payment = ({ cartItems, total, onPay, onBack }) => {
     setIsLoading(true);
     setError(null);
 
-    // Kiểm tra nếu người dùng nhập ít nhất một trường thì phải nhập đầy đủ
     const hasSomeInput =
-      formData.businessName.trim() !== "" ||
+      formData.customerName.trim() !== "" ||
       formData.address.trim() !== "" ||
       formData.phoneNumber.trim() !== "";
     const hasAllInputs =
-      formData.businessName.trim() !== "" &&
+      formData.customerName.trim() !== "" &&
       formData.address.trim() !== "" &&
       formData.phoneNumber.trim() !== "";
 
@@ -48,20 +51,16 @@ const Payment = ({ cartItems, total, onPay, onBack }) => {
 
     try {
       const orderRequest = {
-        customerId: 1,
-        items: cartItems.map((item) => ({
-          productId: parseInt(item.id),
-          name: item.name,
-          price: parseFloat(item.unitPrice),
-          quantity: item.quantity,
-        })),
-        address: formData.address || "Not provided",
-        phoneNumber: formData.phoneNumber || "Not provided",
+        orderID: crypto.randomUUID(),
+        customerName: formData.customerName || "Not provided",
         paymentMethod: formData.paymentMethod,
-        notes: formData.notes,
+        totalPrice: parseFloat(total),
+        cartID: cart,
+        note: formData.note || undefined,
+        print: formData.print,
       };
 
-      const response = await fetch("http://localhost:3001/api/orders/checkout", {
+      const response = await fetch("http://localhost:3001/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderRequest),
@@ -74,14 +73,15 @@ const Payment = ({ cartItems, total, onPay, onBack }) => {
 
       const result = await response.json();
       onPay({
-        orderId: result.data.id,
-        cartItems,
+        orderId: result.orderID,
+        cart,
         paymentDetails: {
-          businessName: formData.businessName || "Not provided",
+          customerName: formData.customerName || "Not provided",
           address: formData.address || "Not provided",
           phoneNumber: formData.phoneNumber || "Not provided",
           paymentMethod: formData.paymentMethod,
-          notes: formData.notes,
+          note: formData.note,
+          print: formData.print,
         },
       });
 
@@ -110,13 +110,13 @@ const Payment = ({ cartItems, total, onPay, onBack }) => {
               <h2 className="section-title">Billing Information (Optional)</h2>
               <div className="checkout_input">
                 <label>
-                  Business Name{formData.businessName && <span className="required">*</span>}
+                  Customer Name{formData.customerName && <span className="required">*</span>}
                 </label>
                 <input
                   type="text"
-                  name="businessName"
-                  placeholder="Enter business name"
-                  value={formData.businessName}
+                  name="customerName"
+                  placeholder="Enter customer name"
+                  value={formData.customerName}
                   onChange={handleInputChange}
                 />
               </div>
@@ -149,9 +149,9 @@ const Payment = ({ cartItems, total, onPay, onBack }) => {
                   <label>Note</label>
                   <textarea
                     rows={5}
-                    name="notes"
+                    name="note"
                     placeholder="Enter notes (optional)"
-                    value={formData.notes}
+                    value={formData.note}
                     onChange={handleInputChange}
                   ></textarea>
                 </div>
@@ -175,23 +175,34 @@ const Payment = ({ cartItems, total, onPay, onBack }) => {
                     <input
                       type="radio"
                       name="payment-method"
-                      value="BANK_TRANSFER"
-                      checked={formData.paymentMethod === "BANK_TRANSFER"}
+                      value="MOMO"
+                      checked={formData.paymentMethod === "MOMO"}
                       onChange={handlePaymentMethodChange}
                     />
-                    <span>Bank Transfer</span>
+                    <span>Momo</span>
                   </label>
                 </div>
-                {formData.paymentMethod === "BANK_TRANSFER" && (
+                {formData.paymentMethod === "MOMO" && (
                   <div className="momo-qr">
                     <h2>Scan to Pay</h2>
                     <img src="/images/qr.jpg" alt="QR Code" className="qr-code-img" />
-                    <p>Please scan the QR code using your mobile banking app to complete the payment.</p>
+                    <p>Please scan the QR code using your Momo app to complete the payment.</p>
                   </div>
                 )}
               </div>
               {error && <p className="error-message">{error}</p>}
               {isLoading && <p className="loading-message">Đang xử lý thanh toán...</p>}
+              <div className="payment-method">
+                  <label>
+                    <input
+                      type="checkbox"
+                      name="print"
+                      checked={formData.print}
+                      onChange={handleInputChange}
+                    />
+                    Print Receipt
+                  </label>
+                </div>
             </div>
           </Col>
           <Col lg={6} md={12} sm={12} xs={12}>

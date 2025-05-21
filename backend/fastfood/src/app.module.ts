@@ -32,8 +32,8 @@ import { Feedback } from './feedback/feedback.entity';
       type: 'mysql',
       host: 'localhost',
       port: 3306,
-      username: 'thanh',
-      password: '12345678',
+      username: 'root',
+      password: 'root',
       database: 'cnpm',
       entities: [Product, Category, Option, Cart, CartItem, CartItemOption, Order, Invoice, Feedback],
       synchronize: false, // Sử dụng trong môi trường dev
